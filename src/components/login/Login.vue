@@ -34,7 +34,7 @@ export default {
       var that = this
       this.axios({
         method: 'post',
-        url: 'api/login',
+        url: '/api/login',
         data: {
           username: this.user,
           password: this.password

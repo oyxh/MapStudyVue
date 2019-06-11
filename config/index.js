@@ -15,7 +15,7 @@ module.exports = {
         target: 'http://localhost:80', //源地址
         changeOrigin: true, //改变源
         pathRewrite: {
-          '^/api': 'http://f.apiplus.cn' //路径重写
+          '^/api': 'http://localhost:80' //路径重写
         }
       }
       },

@@ -13,7 +13,7 @@ export default new Router({
     {
       path: '/index',
       name: 'index',
-      component: () => import('../components/login/index.vue'),
+      component: () => import('../components/index/index.vue'),
       children: [// 二级路由
         {
           path: '/one',
@@ -23,7 +23,7 @@ export default new Router({
         {
           path: '/two',
           name: 'two',
-          component: () => import('../components/two.vue')
+          component: () => import('../components/index/two.vue')
         }
       ]
     }
