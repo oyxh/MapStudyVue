@@ -26,7 +26,7 @@
   <div class="layout">
     <Layout>
       <Header>
-        <Menu mode="horizontal" theme="dark" active-name="1">
+        <Menu mode="horizontal" theme="dark"  active-name="1">
           <div class="layout-logo"></div>
           <div class="layout-nav">
             <MenuItem name="1">
@@ -52,10 +52,10 @@
         <Sider hide-trigger :style="{background: '#fff'}">
           <user-panel></user-panel>
           <div>
-          <Menu  active-name="1-2" :open-names="['1']">
-            <MenuItem name="1">
+          <Menu width="200px" active-name="1-2" :open-names="['1']">
+            <MenuItem name="1" @click.native ="mapWindowAutoLeft">
               <Icon type="ios-paper" />
-              内容管理
+              图层管理
             </MenuItem>
             <Submenu name="1">
               <template slot="title">
@@ -103,7 +103,7 @@
   </div>
 </template>
 <script>
-import MapWindow from '../MapWindow.vue'
+import MapWindow from './MapWindow.vue'
 import UserPanel from './UserPanel.vue'
 export default {
   components: {MapWindow, UserPanel},
@@ -114,7 +114,6 @@ export default {
   },
   methods: {
     mapWindowAutoLeft () {
-      alert('click')
       this.isActive = !this.isActive
     }
   }

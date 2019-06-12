@@ -1,16 +1,20 @@
 <template>
   <div class="mapcontent">
-    <div class="leftsider">window</div>
-    <div id="allmap" >
+    <div class="leftsider" :class={active:isActive}>
+      <layer-item></layer-item>
+    </div>
+    <div id ="allmap" class = "allmapstyle" :class={active:isActive}>
       <div id="map" ></div>
     </div>
   </div>
 </template>
 
 <script>
+import LayerItem from './LayerItems.vue'
 export default {
   props: ['isActive'],
   name: 'MapWindow',
+  components: {LayerItem},
   mounted () {
     var map = new window.BMap.Map('allmap', {enableMapClick: false})
     var poi = new window.BMap.Point(116.307852, 40.057031)
@@ -24,16 +28,22 @@ export default {
 </script>
 
 <style scoped>
-  #allmap{
+  .allmapstyle{
     margin:3px 0 0;
     height:900px;
-    margin-left: 230px;
+    margin-left: 233px;
+  }
+  .allmapstyle.active {
+    margin-left: 0px;
   }
   .leftsider{
     width: 230px;
     height: 100%;
-    background: #d7e6e1;
+    background: #ffffff;
     float: left;
+  }
+  .leftsider.active{
+    width: 0px;
   }
   .mapcontent{
     height:903px;

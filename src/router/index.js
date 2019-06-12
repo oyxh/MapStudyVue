@@ -18,7 +18,7 @@ export default new Router({
         {
           path: '/one',
           name: 'one',
-          component: () => import('../components/MapWindow.vue')
+          component: () => import('../components/index/MapWindow.vue')
         },
         {
           path: '/two',
