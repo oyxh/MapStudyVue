@@ -22,8 +22,8 @@
         <button type="success" class ="buttonRight">清除图层</button>
       </div>
     </div>
-    <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2">
-      <Tree :data="data2" show-checkbox></Tree>
+    <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
+      <Tree :data="data2" ref="tree" @on-select-change= "test"></Tree>
     </Drawer>
   </div>
 </template>
@@ -38,24 +38,26 @@ export default {
       activeLayer: 0,
       value2: false,
       data2: [
-        {
-          title: 'parent 1-1',
-          children: [
-            {
-              title: 'leaf 1-1-1'
-            },
-            {
-              title: 'leaf 1-1-2'
-            }
-          ]
-        },
-        {
-          title: 'parent 1-2',
-          children: [
-          ]
-        }
       ]
     }
+  },
+  mounted () {
+    var that = this
+    var postconfig = {
+      method: 'get',
+      url: 'api/districtlist'
+    }
+    this.axios(postconfig)
+      .then(
+        function (response) {
+          console.log(response)
+          that.data2 = response.data
+          // that.initOverlays()// 初始化图层
+        }
+      )
+      .catch(function (error) {
+        console.log(error)
+      })
   },
   computed: {
   },
@@ -124,6 +126,13 @@ export default {
     },
     changeSuccess () {
       this.$emit('layerChangeFromSon')
+    },
+    test () {
+      // console.log(this.$refs.tree.getSelectedNodes()[0].title)
+    },
+    drawerClose () {
+      console.log(this.activeLayer)
+      console.log(this.$refs.tree.getSelectedNodes()[0].title)
     }
   }
 }
