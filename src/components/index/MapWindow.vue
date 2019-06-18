@@ -15,11 +15,18 @@ export default {
   props: ['isActive'],
   name: 'MapWindow',
   components: {LayerItem},
+  data () {
+    return {
+      map: null, // 图层
+      test: 'test'
+    }
+  },
   mounted () {
     var map = new window.BMap.Map('allmap', {enableMapClick: false})
     var poi = new window.BMap.Point(116.307852, 40.057031)
     map.centerAndZoom(poi, 16)
     map.enableScrollWheelZoom()
+    this.map = map
   },
   methods: {
 

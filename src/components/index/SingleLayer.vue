@@ -9,7 +9,8 @@
           关闭编辑
         </label>
         <input  type="checkbox" value="checked" >
-        <button type="success"  class="closeButton" @click=deleteLayer($event,layer.layerId,index)>&times;</button>
+        <button type="success"  class="closeButton" @click=deleteLayer($event,layer.layerId,index)>&times;</button><br>
+        <label>图层背景:{{layer.layerGround}}</label>
       </div>
        <div>
           <button type="success" class ="buttonLeft"  @click="value2 = true" >选择区域</button>
@@ -19,11 +20,11 @@
       <div>
         <button type="success" class ="buttonLeft">导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
-        <button type="success" class ="buttonRight">清除图层</button>
+        <button type="success" class ="buttonRight">保存图层</button>
       </div>
     </div>
     <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
-      <Tree :data="data2" ref="tree" @on-select-change= "test"></Tree>
+      <Tree :data="data2" ref="tree" ></Tree>
     </Drawer>
   </div>
 </template>
@@ -34,11 +35,12 @@ export default {
   props: ['layerChange'],
   data: function () {
     return {
-      layersget: [{layerId: null, layerName: null, layerData: null, userId: null}],
+      layersget: [],
       activeLayer: 0,
       value2: false,
       data2: [
-      ]
+      ],
+      map: null
     }
   },
   mounted () {
@@ -127,12 +129,49 @@ export default {
     changeSuccess () {
       this.$emit('layerChangeFromSon')
     },
-    test () {
+    drawerClose: function () {
+      // console.log(this.activeLayer)
       // console.log(this.$refs.tree.getSelectedNodes()[0].title)
+      if (this.$refs.tree.getSelectedNodes().length === 0) {
+        this.$Message.info('没有选择背景图层')
+      } else {
+        var backcounty = this.$refs.tree.getSelectedNodes()[0].title
+        if (backcounty !== this.layersget[this.activeLayer].layerGround) {
+          var that = this
+          this.$Modal.confirm({
+            title: '背景变化',
+            content: '即将更改背景区域，请确定',
+            onOk: function () {
+              that.setBackGroundLayer(backcounty)
+            }
+          })
+        }
+      }
     },
-    drawerClose () {
-      console.log(this.activeLayer)
-      console.log(this.$refs.tree.getSelectedNodes()[0].title)
+    setBackGroundLayer (backcounty) {
+      this.layersget[this.activeLayer].layerGround = backcounty
+      this.getBoundary(backcounty)
+    },
+    getBoundary: function (backcounty) {
+      this.map = this.$parent.$parent.map
+      var map = this.map
+      var bdary = new window.BMap.Boundary()
+      bdary.get(backcounty, function (rs) { // 获取行政区域
+        map.clearOverlays() // 清除地图覆盖物
+        var count = rs.boundaries.length // 行政区域的点有多少个
+        if (count === 0) {
+          alert('未能获取当前输入行政区域')
+          return
+        }
+        var pointArray = []
+        for (var i = 0; i < count; i++) {
+          var ply = new window.BMap.Polygon(rs.boundaries[i], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8}) // 建立多边形覆盖物
+          ply.setFillOpacity(0.1)
+          map.addOverlay(ply) // 添加覆盖物
+          pointArray = pointArray.concat(ply.getPath())
+        }
+        map.setViewport(pointArray) // 调整视野
+      })
     }
   }
 }
