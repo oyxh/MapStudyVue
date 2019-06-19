@@ -15,7 +15,7 @@
        <div>
           <button type="success" class ="buttonLeft"  @click="value2 = true" >选择区域</button>
           <button type="success" class ="buttonRight">隐藏图层</button>
-          <button type="success" class ="buttonRight">图层绘制</button>
+          <button type="success" class ="buttonRight" @click="drawLayer">图层绘制</button>
        </div>
       <div>
         <button type="success" class ="buttonLeft">导入数据</button>
@@ -172,6 +172,11 @@ export default {
         }
         map.setViewport(pointArray) // 调整视野
       })
+    },
+    drawLayer () {
+
+    },
+    generateDrawTool () {
     }
   }
 }
