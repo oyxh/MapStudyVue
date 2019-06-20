@@ -1,10 +1,10 @@
 <template>
-  <div class="mapcontent">
-    <div class="leftsider" :class={active:isActive}>
+  <div class="mapcontent" >
+    <div class="leftsider" :class={active:isActive} >
       <button @click = "generateDrawTool">test</button>
       <layer-item></layer-item>
     </div>
-    <div id ="allmap" class = "allmapstyle" :class={active:isActive}>
+    <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
       <div id="map" ></div>
     </div>
   </div>
@@ -22,7 +22,6 @@ export default {
     return {
       map: null, // 图层
       test: 'test',
-      drawTool: null,
       styleOptions: { // 绘制图形的式样
         strokeColor: 'red', // 边线颜色。
         fillColor: 'red', // 填充颜色。当参数为空时，圆形将没有填充效果。
@@ -38,6 +37,23 @@ export default {
   },
   mounted () {
     this.initMap()
+  },
+  computed: {
+    getClientHeight: function () {
+      // 屏幕可视区域的高度
+      let clientHeight = document.documentElement.clientHeight
+      console.log('clientWidth 1==' + document.documentElement.clientWidth + 'px')
+      console.log('clientHeight 1==' + clientHeight)
+      // 窗口可视区域发生变化的时候执行
+      window.onresize = () => {
+        clientHeight = document.documentElement.clientHeight
+        console.log('clientHeight changed2==' + clientHeight)
+        return clientHeight
+      }
+      console.log('clientHeight 3==' + clientHeight)
+      clientHeight = clientHeight - 100
+      return clientHeight + 'px'
+    }
   },
   methods: {
     initMap () {
@@ -85,9 +101,7 @@ export default {
           polygonOptions: this.styleOptions, // 多边形的样式
           rectangleOptions: this.styleOptions // 矩形的样式
         })
-        this.drawTool = drawingManager
-        this.drawTool.removeEventListener('add')
-        this.drawTool.addEventListener('overlaycomplete', this.overlaycomplete, 'add')
+        return drawingManager
       }
     }
   }
@@ -97,7 +111,6 @@ export default {
 <style scoped>
   .allmapstyle{
     margin:3px 0 0;
-    height:900px;
     margin-left: 233px;
   }
   .allmapstyle.active {
@@ -113,6 +126,5 @@ export default {
     width: 0px;
   }
   .mapcontent{
-    height:903px;
   }
 </style>

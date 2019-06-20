@@ -40,7 +40,8 @@ export default {
       value2: false,
       data2: [
       ],
-      map: null
+      map: null,
+      drawTool: null
     }
   },
   mounted () {
@@ -174,9 +175,13 @@ export default {
       })
     },
     drawLayer () {
-
+      this.generateDrawTool()
     },
     generateDrawTool () {
+      this.drawTool = this.$parent.$parent.drawTool
+      this.$parent.$parent.generateDrawTool()
+      this.drawTool.removeEventListener('add')
+      this.drawTool.addEventListener('overlaycomplete', this.overlaycomplete, 'add')
     }
   }
 }
