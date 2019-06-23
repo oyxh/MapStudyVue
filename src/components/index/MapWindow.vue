@@ -22,6 +22,7 @@ export default {
     return {
       map: null, // 图层
       test: 'test',
+      drawTool: null,
       styleOptions: { // 绘制图形的式样
         strokeColor: 'red', // 边线颜色。
         fillColor: 'red', // 填充颜色。当参数为空时，圆形将没有填充效果。
@@ -101,7 +102,7 @@ export default {
           polygonOptions: this.styleOptions, // 多边形的样式
           rectangleOptions: this.styleOptions // 矩形的样式
         })
-        return drawingManager
+        this.drawTool = drawingManager
       }
     }
   }

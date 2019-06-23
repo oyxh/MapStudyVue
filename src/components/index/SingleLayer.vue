@@ -85,13 +85,13 @@ export default {
     }
   },
   methods: {
-    selectLayer (e, layerName, index) {
+    selectLayer (e, layerName, index) { // 选择图层
       this.activeLayer = index
     },
-    deleteLayer (e, layerId, index) {
+    deleteLayer (e, layerId, index) { // 删除图层
       this.confirm(layerId) // 确认是否删除
     },
-    confirm (layerId, layerName) { // 确认是否
+    confirm (layerId, layerName) { // 确认是否删除
       var that = this
       this.$Modal.confirm({
         title: '请确认是否删除',
@@ -127,10 +127,10 @@ export default {
         }
       })
     },
-    changeSuccess () {
+    changeSuccess () { // 图层变化
       this.$emit('layerChangeFromSon')
     },
-    drawerClose: function () {
+    drawerClose: function () { // 选择背景地图的drawer关闭
       // console.log(this.activeLayer)
       // console.log(this.$refs.tree.getSelectedNodes()[0].title)
       if (this.$refs.tree.getSelectedNodes().length === 0) {
@@ -149,17 +149,20 @@ export default {
         }
       }
     },
-    setBackGroundLayer (backcounty) {
+    setBackGroundLayer (backcounty) { // 设置背景图层
       this.layersget[this.activeLayer].layerGround = backcounty
       this.getBoundary(backcounty)
+      // this.saveLayer(this.layersget[this.activeLayer])
     },
     getBoundary: function (backcounty) {
       this.map = this.$parent.$parent.map
       var map = this.map
       var bdary = new window.BMap.Boundary()
+      var layer = this.layersget[this.activeLayer]
+      var that = this
       bdary.get(backcounty, function (rs) { // 获取行政区域
-        map.clearOverlays() // 清除地图覆盖物
-        var count = rs.boundaries.length // 行政区域的点有多少个
+        // map.clearOverlays() // 清除地图覆盖物
+        var count = rs.boundaries.length // 行政区域的点有多少个，行政区域的多边形可能有多个
         if (count === 0) {
           alert('未能获取当前输入行政区域')
           return
@@ -167,21 +170,87 @@ export default {
         var pointArray = []
         for (var i = 0; i < count; i++) {
           var ply = new window.BMap.Polygon(rs.boundaries[i], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8}) // 建立多边形覆盖物
-          ply.setFillOpacity(0.1)
-          map.addOverlay(ply) // 添加覆盖物
-          pointArray = pointArray.concat(ply.getPath())
+          pointArray.push(ply.getPath())
         }
+        var maxPointNum = 0
+        var maxSeq = 0
+        var formatGroundData = [] // 传送至后台的背景数据
+        for (var j = 0; j < pointArray.length; j++) { // 简化行政区域的点
+          if (pointArray[j].length > maxPointNum) {
+            maxPointNum = pointArray[j].length
+            maxSeq = j
+          }
+          var formatPolygon = { }
+          formatPolygon.polygonName = backcounty + j
+          formatPolygon.polygonMana = backcounty + j
+          var pointArrayJson = []
+          for (var k = 0; k < pointArray[j].length; k++) {
+            pointArrayJson.push({
+              'lng': pointArray[j][k].lng,
+              'lat': pointArray[j][k].lat
+            })
+          }
+          formatPolygon.polygonData = pointArrayJson
+          formatGroundData.push(formatPolygon)
+          var ply1 = new window.BMap.Polygon(pointArray[j], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
+          ply1.setFillOpacity(0.1)
+          map.addOverlay(ply1)
+        }
+        console.log(pointArray.length)
+        map.setViewport(pointArray[maxSeq])
+        layer.layerGroundData = formatGroundData
+        console.log(layer.layerGroundData)
+        that.saveLayer(layer)
+        /* map.clearOverlays()
+        var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
+        map.addOverlay(ply1)
         map.setViewport(pointArray) // 调整视野
+        layer.layerGroundData = rs.boundaries */
       })
     },
-    drawLayer () {
+    saveLayer: function (layer) { // 保存图层  layer为数据，是layerget数组中的单元
+      console.log(layer)
+      console.log(new window.BMap.Point(129, 110))
+      /*  var person = {
+        'name': 'goodboy',
+        'sex': '男'
+      } */
+      if (layer.layerData !== null) {
+      } else {
+        layer.layerData = ' '
+        // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
+      }
+      console.log(layer.layerGroundData)
+      var postconfig = {
+        method: 'post',
+        url: 'api/savelayer',
+        dataType: 'json',
+        data: layer,
+        contentType: 'application/json'
+      }
+      this.axios(postconfig)
+        .then(
+          function (response) {
+            console.log(response)
+            // that.layersget = response.data
+            // that.initOverlays()// 初始化图层
+          }
+        )
+        .catch(function (error) {
+          console.log(error)
+        })
+    },
+    drawLayer () { // 开始绘制区域图层
       this.generateDrawTool()
     },
-    generateDrawTool () {
-      this.drawTool = this.$parent.$parent.drawTool
+    generateDrawTool () { // 生成绘制区域的工具
       this.$parent.$parent.generateDrawTool()
+      this.drawTool = this.$parent.$parent.drawTool
       this.drawTool.removeEventListener('add')
       this.drawTool.addEventListener('overlaycomplete', this.overlaycomplete, 'add')
+    },
+    overlaycomplete (e) {
+      alert('overlaycomplete')
     }
   }
 }
