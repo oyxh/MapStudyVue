@@ -20,7 +20,7 @@
       <div>
         <button type="success" class ="buttonLeft">导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
-        <button type="success" class ="buttonRight">保存图层</button>
+        <button type="success" class ="buttonRight" @click="saveLayer">保存图层</button>
       </div>
     </div>
     <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
@@ -159,7 +159,6 @@ export default {
       var map = this.map
       var bdary = new window.BMap.Boundary()
       var layer = this.layersget[this.activeLayer]
-      var that = this
       bdary.get(backcounty, function (rs) { // 获取行政区域
         // map.clearOverlays() // 清除地图覆盖物
         var count = rs.boundaries.length // 行政区域的点有多少个，行政区域的多边形可能有多个
@@ -200,7 +199,7 @@ export default {
         map.setViewport(pointArray[maxSeq])
         layer.layerGroundData = formatGroundData
         console.log(layer.layerGroundData)
-        that.saveLayer(layer)
+        // that.saveLayer(layer)
         /* map.clearOverlays()
         var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
         map.addOverlay(ply1)
@@ -208,19 +207,14 @@ export default {
         layer.layerGroundData = rs.boundaries */
       })
     },
-    saveLayer: function (layer) { // 保存图层  layer为数据，是layerget数组中的单元
-      console.log(layer)
-      console.log(new window.BMap.Point(129, 110))
-      /*  var person = {
-        'name': 'goodboy',
-        'sex': '男'
-      } */
+    saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元
+      var layer = this.layersget[this.activeLayer]
+      var that = this
       if (layer.layerData !== null) {
       } else {
         layer.layerData = ' '
         // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
       }
-      console.log(layer.layerGroundData)
       var postconfig = {
         method: 'post',
         url: 'api/savelayer',
@@ -231,13 +225,14 @@ export default {
       this.axios(postconfig)
         .then(
           function (response) {
-            console.log(response)
+            that.$Message.info('保存成功')
             // that.layersget = response.data
             // that.initOverlays()// 初始化图层
           }
         )
         .catch(function (error) {
           console.log(error)
+          that.$Message.info('保存未成功')
         })
     },
     drawLayer () { // 开始绘制区域图层
