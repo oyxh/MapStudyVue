@@ -20,7 +20,11 @@
       <div>
         <button type="success" class ="buttonLeft">导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
+<<<<<<< HEAD
         <button type="success" class ="buttonRight" @click="saveLayer">保存图层</button>
+=======
+        <button type="success" class ="buttonRight" @click = saveLayer>保存图层</button>
+>>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
       </div>
     </div>
     <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
@@ -159,6 +163,10 @@ export default {
       var map = this.map
       var bdary = new window.BMap.Boundary()
       var layer = this.layersget[this.activeLayer]
+<<<<<<< HEAD
+=======
+      // var that = this
+>>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
       bdary.get(backcounty, function (rs) { // 获取行政区域
         // map.clearOverlays() // 清除地图覆盖物
         var count = rs.boundaries.length // 行政区域的点有多少个，行政区域的多边形可能有多个
@@ -209,7 +217,15 @@ export default {
     },
     saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元
       var layer = this.layersget[this.activeLayer]
+<<<<<<< HEAD
       var that = this
+=======
+      console.log(new window.BMap.Point(129, 110))
+      /*  var person = {
+        'name': 'goodboy',
+        'sex': '男'
+      } */
+>>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
       if (layer.layerData !== null) {
       } else {
         layer.layerData = ' '
