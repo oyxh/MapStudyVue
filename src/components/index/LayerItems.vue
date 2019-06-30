@@ -20,7 +20,7 @@ export default {
     }
   },
   mounted () {
-    this.watchLayerChange = !this.watchLayerChange // 该值变化singlelayer会重新请求数据库的图层信息并重新生成
+    // this.watchLayerChange = !this.watchLayerChange // 该值变化singlelayer会重新请求数据库的图层信息并重新生成
   },
   methods: {
     addLayer (gridName) {

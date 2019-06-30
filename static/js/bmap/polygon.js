@@ -305,8 +305,11 @@
     pointObject.dis = Math.pow((x - px) * (x - px) + (py - y) * (py - y), 0.5)
     return pointObject
   }
-
+  var test = function () {
+    alert("I 'm from plygon.js")
+  }
   w.getPolygonLine = getPolygonLine
   w.isPolygon = isPolygon
   w.getDistancePointTOLine = getDistancePointTOLine
+  w.test = test
 })(window)

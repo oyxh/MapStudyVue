@@ -20,11 +20,9 @@
       <div>
         <button type="success" class ="buttonLeft">导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
-<<<<<<< HEAD
+
         <button type="success" class ="buttonRight" @click="saveLayer">保存图层</button>
-=======
-        <button type="success" class ="buttonRight" @click = saveLayer>保存图层</button>
->>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
+
       </div>
     </div>
     <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
@@ -49,6 +47,7 @@ export default {
     }
   },
   mounted () {
+    this.$emit('layerChangeFromSon')
     var that = this
     var postconfig = {
       method: 'get',
@@ -159,14 +158,10 @@ export default {
       // this.saveLayer(this.layersget[this.activeLayer])
     },
     getBoundary: function (backcounty) {
-      this.map = this.$parent.$parent.map
-      var map = this.map
+      var map = this.$parent.$parent.map
       var bdary = new window.BMap.Boundary()
       var layer = this.layersget[this.activeLayer]
-<<<<<<< HEAD
-=======
-      // var that = this
->>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
+
       bdary.get(backcounty, function (rs) { // 获取行政区域
         // map.clearOverlays() // 清除地图覆盖物
         var count = rs.boundaries.length // 行政区域的点有多少个，行政区域的多边形可能有多个
@@ -217,18 +212,10 @@ export default {
     },
     saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元
       var layer = this.layersget[this.activeLayer]
-<<<<<<< HEAD
       var that = this
-=======
-      console.log(new window.BMap.Point(129, 110))
-      /*  var person = {
-        'name': 'goodboy',
-        'sex': '男'
-      } */
->>>>>>> f18d58f70959cc6ddef0081f0231d066c13fb599
       if (layer.layerData !== null) {
       } else {
-        layer.layerData = ' '
+        layer.layerData = []
         // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
       }
       var postconfig = {
@@ -261,7 +248,88 @@ export default {
       this.drawTool.addEventListener('overlaycomplete', this.overlaycomplete, 'add')
     },
     overlaycomplete (e) {
-      alert('overlaycomplete')
+      var map = this.$parent.$parent.map
+      var layer = this.layersget[this.activeLayer]
+      var gridPoly = {
+        polygonName: '',
+        polygonMana: '',
+        polygonData: []
+      }
+      gridPoly.polygonData = this.polyPathToJson(e.overlay.getPath())
+
+      this.$Modal.confirm({
+        title: '请输入网格信息：',
+        // content: '<div><label>网格名称</label> <input v-model="value" placeholder="Enter something..."></input><br><br><label>网格经理</label> <input></input></div>',
+        render: (h) => {
+          const inputData = [{
+            domProps: {
+              value: gridPoly.polygonName,
+              autofocus: true,
+              placeholder: '请输入网格名字...',
+              style: 'color:red;width:100%;margin-bottom:8px'
+            },
+            on: {
+              input: (val) => {
+                gridPoly.polygonName = val.target.value
+              }
+            }
+          },
+          {
+            domProps: {
+              value: gridPoly.polygonMana,
+              autofocus: true,
+              placeholder: '请输入网格负责人...',
+              style: 'color:red;width:100%'
+            },
+            on: {
+              input: (val) => {
+                gridPoly.polygonMana = val.target.value
+              }
+            }
+          }
+          ]
+          return h('div', inputData.map(item => h('input', item)))
+        },
+        onOk: function () {
+          layer.layerData.push(gridPoly)
+          alert(window.test())
+          alert(gridPoly.polygonName)
+          alert(gridPoly.polygonMana)
+        },
+        onCancel: function () {
+          map.removeOverlay(e.overlay)
+        }
+      })
+    },
+    axiosRequest (type, url, data, resFuc, errerFuc) {
+      var postconfig = {
+        method: type,
+        url: url,
+        dataType: 'json',
+        data: data,
+        contentType: 'application/json'
+      }
+      this.axios(postconfig)
+        .then(
+          function (response) {
+            console.log(response)
+            resFuc()
+          }
+        )
+        .catch(function (error) {
+          console.log(error)
+          errerFuc()
+        })
+    },
+    polyPathToJson (pointArray) { // 多边形的path 变为json
+      var pointArrayJson = []
+      for (var k = 0; k < pointArray.length; k++) {
+        pointArrayJson.push({
+          'lng': pointArray[k].lng,
+          'lat': pointArray[k].lat
+        })
+      }
+      return pointArrayJson
     }
   }
 }
