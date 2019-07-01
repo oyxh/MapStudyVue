@@ -64,6 +64,7 @@ export default {
       .catch(function (error) {
         console.log(error)
       })
+    this.drawLayersFromData()
   },
   computed: {
   },
@@ -88,6 +89,13 @@ export default {
     }
   },
   methods: {
+    drawLayersFromData () {
+      var layer = this.layersget[this.activeLayer]
+      this.drawLayerFromData(layer)
+    },
+    drawLayerFromData (layer) { // 画一个图层
+
+    },
     selectLayer (e, layerName, index) { // 选择图层
       this.activeLayer = index
     },
