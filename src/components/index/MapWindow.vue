@@ -1,7 +1,6 @@
 <template>
   <div class="mapcontent" >
     <div class="leftsider" :class={active:isActive} >
-      <button @click = "generateDrawTool">test</button>
       <layer-item></layer-item>
     </div>
     <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">

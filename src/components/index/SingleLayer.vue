@@ -1,5 +1,9 @@
 <template>
   <div >
+    <promp-window @sendName="addLayer" ></promp-window>
+    <br>
+    <Button type="primary" long>导入数据</Button>
+    <br><br>
     <div v-for="(layer,index) in this.layersget" :key="layer.layerId"  :style= "{height:'100%',display:'inline-block',
                    marginBottom:'5px',border: index === activeLayer ? '2px solid blue' : '2px solid #66b3FF'}"
          @click=selectLayer($event,layer.layerName,index) >
@@ -34,10 +38,9 @@
 <script>
 export default {
   name: 'SingleLayer',
-  props: ['layerChange'],
+  props: ['layerChange', 'layersget'],
   data: function () {
     return {
-      layersget: [],
       activeLayer: 0,
       value2: false,
       data2: [
@@ -100,9 +103,9 @@ export default {
       this.activeLayer = index
     },
     deleteLayer (e, layerId, index) { // 删除图层
-      this.confirm(layerId) // 确认是否删除
+      this.confirm(layerId, index) // 确认是否删除
     },
-    confirm (layerId, layerName) { // 确认是否删除
+    confirm (layerId, index) { // 确认是否删除
       var that = this
       this.$Modal.confirm({
         title: '请确认是否删除',
@@ -126,7 +129,7 @@ export default {
           this.axios(postconfig)
             .then(
               function (response) {
-                that.changeSuccess()
+                that.changeSuccess(index)
                 console.log(response)
               })
             .catch(function (error) {
@@ -138,8 +141,9 @@ export default {
         }
       })
     },
-    changeSuccess () { // 图层变化
-      this.$emit('layerChangeFromSon')
+    changeSuccess (index) { // 图层变化
+      this.layersget.splice(index, 1)
+      // this.$emit('layerChangeFromSon')
     },
     drawerClose: function () { // 选择背景地图的drawer关闭
       // console.log(this.activeLayer)
