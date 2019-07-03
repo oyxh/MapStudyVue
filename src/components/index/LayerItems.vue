@@ -83,7 +83,7 @@ export default {
           function (response) {
             console.log(response)
             that.layersget = response.data
-            // that.initOverlays()// 初始化图层
+            that.initOverlays()// 初始化图层
           }
         )
         .catch(function (error) {
@@ -92,6 +92,9 @@ export default {
     }
   },
   methods: {
+    initOverlays () {
+      alert(this.layersget.length)
+    },
     addLayer (gridName) {
       var that = this
       var postconfig = {
@@ -112,7 +115,8 @@ export default {
         .then(
           function (response) {
             that.activeLayer = 0
-            that.addLayerInPage(gridName)
+            var layerId = response.data.msg
+            that.addLayerInPage(gridName, layerId)
             console.log(response)
             // that.startDraw()
           })
@@ -120,8 +124,9 @@ export default {
           console.log(error)
         }) // axios
     },
-    addLayerInPage (gridName) { // 页面添加layer数据
+    addLayerInPage (gridName, layerId) { // 页面添加layer数据
       this.layersget.unshift({
+        layerId: layerId,
         layerName: gridName
       })
     },
@@ -206,7 +211,7 @@ export default {
       // this.saveLayer(this.layersget[this.activeLayer])
     },
     getBoundary: function (backcounty) {
-      var map = this.$parent.$parent.map
+      var map = this.$parent.map
       var bdary = new window.BMap.Boundary()
       var layer = this.layersget[this.activeLayer]
 
@@ -290,13 +295,13 @@ export default {
       this.generateDrawTool()
     },
     generateDrawTool () { // 生成绘制区域的工具
-      this.$parent.$parent.generateDrawTool()
-      this.drawTool = this.$parent.$parent.drawTool
+      this.$parent.generateDrawTool()
+      this.drawTool = this.$parent.drawTool
       this.drawTool.removeEventListener('add')
       this.drawTool.addEventListener('overlaycomplete', this.overlaycomplete, 'add')
     },
     overlaycomplete (e) {
-      var map = this.$parent.$parent.map
+      var map = this.$parent.map
       var layer = this.layersget[this.activeLayer]
       var gridPoly = {
         polygonName: '',
