@@ -36,6 +36,7 @@
 
 <script>
 import PrompWindow from './promp'
+import MyPolygon from '../../utils/MyPolygon'
 export default {
   name: 'LayerItems',
   components: {PrompWindow},
@@ -43,6 +44,7 @@ export default {
     return {
       activeLayer: 0,
       layerChange: false,
+      overlayMap: null,
       value2: false,
       layersget: [],
       data2: [
@@ -50,6 +52,9 @@ export default {
       map: null,
       drawTool: null
     }
+  },
+  created () {
+    this.overlayMap = new Map()
   },
   mounted () {
     var that = this
@@ -93,7 +98,45 @@ export default {
   },
   methods: {
     initOverlays () {
-      alert(this.layersget.length)
+      this.initOneLayer(this.layersget[this.activeLayer].layerData)
+      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData)
+    },
+    initOneLayer (layerData) {
+      var max = 0
+      var flag = false
+      for (var i = 0; i < layerData.length; i++) {
+        flag = false
+        var polygonData = layerData[i].polygonData
+        if (polygonData.length > max) {
+          max = polygonData.length
+          flag = true
+        }
+        this.initPolygon(layerData[i], flag, layerData)
+        console.log(this.overlayMap)
+      }
+    },
+    initPolygon (polygon, flag, layerData) {
+      var map = this.$parent.map
+      var pointArray = []
+      for (var i = 0; i < polygon.polygonData.length; i++) {
+        pointArray.push(new window.BMap.Point(polygon.polygonData[i].lng, polygon.polygonData[i].lat))
+      }
+      var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
+      ply1.setFillOpacity(0.1)
+      map.addOverlay(ply1)
+      var polygonObject = new MyPolygon(pointArray)
+      map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getPolygonAreaCenter().lng, polygonObject.getPolygonAreaCenter().lat)))
+      console.log(polygonObject)
+      // var areaCenter = polygonObject.getPolygonAreaCenter()
+
+      this.overlayMap.set(ply1,
+        {polygon: polygon, // 多边形的数据，数据库的格式
+          polygonArray: layerData, // 多边形数据的上一级数组
+          polygonObject: polygonObject // 多边形生成的MyPolygon对象，可以进行各种运算
+        })
+      if (flag) {
+        map.setViewport(pointArray)
+      }
     },
     addLayer (gridName) {
       var that = this
