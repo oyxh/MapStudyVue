@@ -124,7 +124,7 @@ export default {
       var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
       ply1.setFillOpacity(0.1)
       map.addOverlay(ply1)
-      var polygonObject = new MyPolygon(pointArray)
+      var polygonObject = new MyPolygon(pointArray, map)
       map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getPolygonAreaCenter().lng, polygonObject.getPolygonAreaCenter().lat)))
       console.log(polygonObject)
       // var areaCenter = polygonObject.getPolygonAreaCenter()
