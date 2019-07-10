@@ -1,4 +1,4 @@
-/* eslint-disable camelcase,eqeqeq,one-var */
+/* eslint-disable camelcase,eqeqeq,one-var,no-unused-vars */
 class MyPolygon {
   constructor (pointData, map) {
     this._pointData = []
@@ -32,6 +32,69 @@ class MyPolygon {
     var yy = sum_y / sum_area / 3
     return {lng: xx, lat: yy}
     // return new Point(xx, yy, new SpatialReference({wkid: 4326}))
+  }
+  /*
+方法名称：getMinXMaxX
+功能描述：获取多边形X轴最小值与最大值
+返回值:最小值minX，最大值maxX
+*/
+  getMinXMaxXminYmaxY () {
+    var res = {minX: 999,
+      maxX: -999,
+      minY: 999,
+      maxY: -999}
+    if (this._pointData.length === 0) {
+      return null
+    }
+    var item = null
+    for (var i = 0; i < this._pointData.length; i++) {
+      item = this._pointData[i]
+      if (item[0] > res.maxX) {
+        res.maxX = item[0]
+      }
+      if (item[0] < res.minX) {
+        res.minX = item[0]
+      }
+      if (item[1] > res.maxY) {
+        res.maxY = item[1]
+      }
+      if (item[1] < res.minY) {
+        res.minY = item[1]
+      }
+    }
+    return res
+  }
+  /*
+方法名称：getSevaralPoint
+功能描述：获取多边形里横向或竖向多个间隔相同的点，处于中间位置
+参数描述：
+  pointsNum：需要返回的点数
+  返回值:合适的点数组
+*/
+  getSevaralPoint (pointsNum) {
+    if (pointsNum <= 0) return null
+    if (pointsNum == 1) return this.getPolygonAreaCenter()
+    var isVerticle = false // false横向的点，true 竖向的点
+    var lineList = []
+    var line = null
+    var bounds = this.getMinXMaxXminYmaxY()
+    if (bounds.maxX - bounds.minX < bounds.maxY - bounds.minY) {
+      isVerticle = true
+      var linesGap = (bounds.maxY - bounds.minY) / 2 / (pointsNum - 1)
+      for (var i = 0; i < pointsNum; i++) {
+        line = { // 水平线段
+          S: {
+            x: bounds.minX,
+            y: bounds.minY + (bounds.maxY - bounds.minY) / 4 + i * linesGap // 以1/4处为起始点按间距选pointNum条线
+          },
+          E: {
+            x: bounds.maxX,
+            y: bounds.minY + (bounds.maxY - bounds.minY) / 4 + i * linesGap
+          }
+        }
+
+      }
+    }
   }
   /*
   方法名称：getPolygonLine
