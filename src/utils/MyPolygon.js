@@ -14,6 +14,9 @@ class MyPolygon {
     area = p0[0] * p1[1] + p1[0] * p2[1] + p2[0] * p0[1] - p1[0] * p0[1] - p2[0] * p1[1] - p0[0] * p2[1]
     return area / 2
   }
+  vecCross (x1, y1, x2, y2) {
+    return x1 * y2 - x2 * y1
+  }
   getPolygonAreaCenter () {
     var sum_x = 0
     var sum_y = 0
@@ -80,8 +83,8 @@ class MyPolygon {
     var bounds = this.getMinXMaxXminYmaxY()
     if (bounds.maxX - bounds.minX < bounds.maxY - bounds.minY) {
       isVerticle = true
-      var linesGap = (bounds.maxY - bounds.minY) / 2 / (pointsNum - 1)
-      for (var i = 0; i < pointsNum; i++) {
+      let linesGap = (bounds.maxY - bounds.minY) / 2 / (pointsNum - 1)
+      for (let i = 0; i < pointsNum; i++) {
         line = { // 水平线段
           S: {
             x: bounds.minX,
@@ -92,9 +95,59 @@ class MyPolygon {
             y: bounds.minY + (bounds.maxY - bounds.minY) / 4 + i * linesGap
           }
         }
-
+        lineList.push(line)
+      }
+    } else {
+      isVerticle = false
+      let linesGap = (bounds.maxX - bounds.minX) / 2 / (pointsNum - 1)
+      for (let i = 0; i < pointsNum; i++) {
+        line = { // 水平线段
+          S: {
+            x: bounds.minX + (bounds.maxX - bounds.minX) / 4 + i * linesGap,
+            y: bounds.minY
+          },
+          E: {
+            x: bounds.minX + (bounds.maxX - bounds.minX) / 4 + i * linesGap,
+            y: bounds.maxY
+          }
+        }
+        lineList.push(line)
       }
     }
+    var pA = null
+    var pB = null
+    var pC = null
+    var pD = null
+    var resPoints = []
+    var sumX = 0
+    var sumY = 0
+    var overlapCount = 0
+    var polygonLines = this.getPolygonLine()
+    for (let i = 0; i < lineList.length; i++) {
+      sumX = 0
+      sumY = 0
+      overlapCount = 0
+      pA = [lineList[i].S.x, lineList[i].S.y]
+      pB = [lineList[i].E.x, lineList[i].E.y]
+      for (let j = 0; j < polygonLines.length; j++) {
+        pC = [polygonLines[j].S.x, polygonLines[j].S.y]
+        pD = [polygonLines[j].E.x, polygonLines[j].E.y]
+        let cross = this.getgetOverlapCross(pA, pB, pC, pD)
+        if (cross >= 0 && cross <= 1) {
+          console.log(pA[0] + cross * (pB[0] - pA[0]))
+          console.log(pA[1] + cross * (pB[1] - pA[1]))
+          console.log(pA)
+          console.log(pB)
+          console.log(pC)
+          console.log(pD)
+          sumX += pA[0] + cross * (pB[0] - pA[0])
+          sumY += pA[1] + cross * (pB[1] - pA[1])
+          overlapCount += 1
+        }
+      }
+      resPoints.push([sumX / overlapCount, sumY / overlapCount])
+    }
+    return resPoints
   }
   /*
   方法名称：getPolygonLine
@@ -133,165 +186,13 @@ class MyPolygon {
     return lineList
   }
   /*
-     方法名称：getOverlapCount
-     功能描述：获取指定线段与线段数组里面相交的线段(不包括斜率一致的)
-     参数描述：
-     line：指定线段
-     lineList：线段数组
-     返回值:返回相交的线段
-     */
-  getOverlapCount (line, lineList) {
-    var len = lineList.length,
-      item = null,
-      OverlapLine = []
-    for (var i = 0; i < len; i++) {
-      item = lineList[i]
-      if (this.isOverlapping(line, item) && this.isEqualK(line, item) == false) {
-        OverlapLine.push(item)
-      }
-    }
-    return OverlapLine
-  }
-  /*
-   方法名称：isEqualK
-   功能描述：判断斜率是否一致
-   参数描述：
-   lineA：线段A
-   lineB：线段B
-   返回值:
-    true:一致
-    false:不一致
-   */
-  isEqualK (lineA, lineB) {
-    var lineAK = this.getLineK(lineA.S.x, lineA.S.y, lineA.E.x, lineA.E.y)
-    var lineBK = this.getLineK(lineB.S.x, lineB.S.y, lineB.E.x, lineB.E.y)
-    return lineAK == lineBK
-  }
-  /*
-   方法名称：isOverlapping
-   功能描述：判断两个线段是否相交
-   参数描述：
-   lineA：线段A
-   lineB：线段B
-   返回值:
-   true：交叉
-   false：不交叉
-   判断依据:1：判断两条线段的端点是否存在在彼此之上的情况,2：判断两个线段的两个端点是否都在彼此的两边
-   */
-  isOverlapping (lineA, lineB) {
-    var lineAStartPointInLineB = this.isPointInLine(lineA.S, lineB.S, lineB.E)
-    var lineAEndPointInLineB = this.isPointInLine(lineA.E, lineB.S, lineB.E)
-    var lineBStartPointInLineA = this.isPointInLine(lineB.S, lineA.S, lineA.E)
-    var lineBEndPointInLineA = this.isPointInLine(lineB.E, lineA.S, lineA.E)
-    // 只要有一点在另外一条线上我们就认为相交,也就是两条直线相交
-    if (lineAStartPointInLineB == 0 || lineAEndPointInLineB == 0 || lineBStartPointInLineA == 0 || lineBEndPointInLineA == 0) {
-      return true
-    }
-    // 如果上面条件不满足,点都不在对应的线段上,但是有一个点在另外一条线的延长线上,说明一定不会相交
-    if (lineAStartPointInLineB == -2 || lineAEndPointInLineB == -2 || lineBStartPointInLineA == -2 || lineBEndPointInLineA == -2) {
-      return false
-    }
-    // 因为在上面是1,在下面是-1,两个相乘如果小于0则一定在两边,如果两条线段的两个端点分别在对应线段的两端,说明相交
-    if (lineAStartPointInLineB * lineAEndPointInLineB < 1 && lineBStartPointInLineA * lineBEndPointInLineA < 1) {
-      return true
-    }
-    return false// 默认不相交
-  }
-  /*
-   方法名称：isPointInLine
-   功能描述：判断点point是否在以linePS为起点,linePE为终点的线段上
-   参数描述：
-   point：点
-   linePS：线段起点
-   linePE：线段终点
-   返回值:
-   0：在线段上
-   1：不在线段上，而是在线段的上方
-   -1：不在线段上，而是在线段的下方
-   -2:不在线段上，而是在线段所在的直线上
-   */
-  isPointInLine (point, linePS, linePE) {
-    var maxLineX = 0,
-      minLineX = 0,
-      maxLineY = 0,
-      minLineY = 0,
-      K = this.getLineK(linePS.x, linePS.y, linePE.x, linePE.y)
-    var B = this.getLineB(linePS.x, linePS.y, K)
-    var linePointY = (K * point.x + B)
-    if (linePS.x < linePE.x) {
-      maxLineX = linePE.x; minLineX = linePS.x
-    } else {
-      maxLineX = linePS.x; minLineX = linePE.x
-    }
-    if (linePS.y < linePE.y) {
-      maxLineY = linePE.y; minLineY = linePS.y
-    } else {
-      maxLineY = linePS.y; minLineY = linePE.y
-    }
-    if (point.x >= minLineX && point.x <= maxLineX && point.y >= minLineY && point.y <= maxLineY) { // 在线段所在的矩形范围之内
-      if (linePointY == point.y) {
-        return 0
-      } else if (linePointY > point.y) {
-        if (point.y >= 0) {
-          return -1
-        } else {
-          return 1
-        }
-      } else {
-        if (point.y >= 0) {
-          return 1
-        } else {
-          return -1
-        }
-      }
-    } else {
-      if (linePointY == point.y) {
-        return -2
-      } else if (linePointY > point.y) {
-        if (point.y >= 0) {
-          return -1
-        } else {
-          return 1
-        }
-      } else {
-        if (point.y >= 0) {
-          return 1
-        } else {
-          return -1
-        }
-      }
-    }
-  }
-  /*
-   方法名称：getLineK
-   功能描述：获取线段的斜率
-   参数描述：
-   x1：X坐标1
-   y1：Y坐标1
-   x2：X坐标2
-   y2：Y坐标2
-   返回值:斜率
-   */
-  getLineK (x1, y1, x2, y2) {
-    return (y1 - y2) / (x1 - x2)
-  }
-  /*
-   方法名称：getLineB
-   功能描述：获取线段的y轴截距
-   参数描述：
-   x1：X坐标1
-   y1：Y坐标1
-   k：斜率
-   返回值:线段的y轴截距
-   */
-  getLineB (x1, y1, k) {
-    return y1 - k * x1
-  }
-  get pointData () {
-    return this._pointData
-  }
-  set pointData (pointData) {
-    this._pointData = pointData
+  方法名称：getgetOverlapCross
+  功能描述：求线段A(x1,y1)B(x2,y2)与C(x3,y3)D(x4,y4)的交点在AB上的位置
+  参数描述：
+  返回值:设交点为O，返回值为AO/AB，小于0交于A点左侧，大于1交于B点右侧，无穷大为平行，设最大值近似平行
+  */
+  getgetOverlapCross (pA, pB, pC, pD) {
+    return (this.Area(pA, pC, pD) / this.Area(pA, pB, pD))
   }
 }
 export default MyPolygon

@@ -125,8 +125,12 @@ export default {
       ply1.setFillOpacity(0.1)
       map.addOverlay(ply1)
       var polygonObject = new MyPolygon(pointArray, map)
-      map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getPolygonAreaCenter().lng, polygonObject.getPolygonAreaCenter().lat)))
-      console.log(polygonObject)
+      //  map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getPolygonAreaCenter().lng, polygonObject.getPolygonAreaCenter().lat)))
+      for (let i = 0; i < polygonObject.getSevaralPoint(5).length; i++) {
+        map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getSevaralPoint(5)[i][0], polygonObject.getSevaralPoint(5)[i][1])))
+      }
+      // console.log(polygonObject.getSevaralPoint(5))
+      // console.log(polygonObject)
       // var areaCenter = polygonObject.getPolygonAreaCenter()
 
       this.overlayMap.set(ply1,
