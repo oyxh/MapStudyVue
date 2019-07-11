@@ -35,8 +35,9 @@
 </template>
 
 <script>
+/* eslint-disable no-unused-vars */
 import PrompWindow from './promp'
-import MyPolygon from '../../utils/MyPolygon'
+import MyOverlay from '../../utils/MyOverlay'
 export default {
   name: 'LayerItems',
   components: {PrompWindow},
@@ -102,6 +103,7 @@ export default {
       this.initOneLayer(this.layersget[this.activeLayer].layerGroundData)
     },
     initOneLayer (layerData) {
+      var map = this.$parent.map
       var max = 0
       var flag = false
       for (var i = 0; i < layerData.length; i++) {
@@ -111,35 +113,9 @@ export default {
           max = polygonData.length
           flag = true
         }
-        this.initPolygon(layerData[i], flag, layerData)
-        console.log(this.overlayMap)
-      }
-    },
-    initPolygon (polygon, flag, layerData) {
-      var map = this.$parent.map
-      var pointArray = []
-      for (var i = 0; i < polygon.polygonData.length; i++) {
-        pointArray.push(new window.BMap.Point(polygon.polygonData[i].lng, polygon.polygonData[i].lat))
-      }
-      var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
-      ply1.setFillOpacity(0.1)
-      map.addOverlay(ply1)
-      var polygonObject = new MyPolygon(pointArray, map)
-      //  map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getPolygonAreaCenter().lng, polygonObject.getPolygonAreaCenter().lat)))
-      for (let i = 0; i < polygonObject.getSevaralPoint(5).length; i++) {
-        map.addOverlay(new window.BMap.Marker(new window.BMap.Point(polygonObject.getSevaralPoint(5)[i][0], polygonObject.getSevaralPoint(5)[i][1])))
-      }
-      // console.log(polygonObject.getSevaralPoint(5))
-      // console.log(polygonObject)
-      // var areaCenter = polygonObject.getPolygonAreaCenter()
-
-      this.overlayMap.set(ply1,
-        {polygon: polygon, // 多边形的数据，数据库的格式
-          polygonArray: layerData, // 多边形数据的上一级数组
-          polygonObject: polygonObject // 多边形生成的MyPolygon对象，可以进行各种运算
-        })
-      if (flag) {
-        map.setViewport(pointArray)
+        //  this.initPolygon(layerData[i], flag, layerData)
+        var polygonObject = new MyOverlay(map, layerData[i], flag)
+        console.log(polygonObject)
       }
     },
     addLayer (gridName) {
@@ -298,16 +274,8 @@ export default {
           ply1.setFillOpacity(0.1)
           map.addOverlay(ply1)
         }
-        console.log(pointArray.length)
         map.setViewport(pointArray[maxSeq])
         layer.layerGroundData = formatGroundData
-        console.log(layer.layerGroundData)
-        // that.saveLayer(layer)
-        /* map.clearOverlays()
-        var ply1 = new window.BMap.Polygon(pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
-        map.addOverlay(ply1)
-        map.setViewport(pointArray) // 调整视野
-        layer.layerGroundData = rs.boundaries */
       })
     },
     saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元

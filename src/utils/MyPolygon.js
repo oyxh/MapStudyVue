@@ -6,8 +6,6 @@ class MyPolygon {
     for (var i = 0; i < pointData.length; i++) {
       this._pointData.push([pointData[i].lng, pointData[i].lat])
     }
-    console.log(this._pointData)
-    console.log(this.getPolygonAreaCenter())
   }
   Area (p0, p1, p2) {
     var area = 0.0
@@ -192,7 +190,15 @@ class MyPolygon {
   返回值:设交点为O，返回值为AO/AB，小于0交于A点左侧，大于1交于B点右侧，无穷大为平行，设最大值近似平行
   */
   getgetOverlapCross (pA, pB, pC, pD) {
-    return (this.Area(pA, pC, pD) / this.Area(pA, pB, pD))
+    var vecACX = pC[0] - pA[0]
+    var vecACY = pC[1] - pA[1]
+    var vecADX = pD[0] - pA[0]
+    var vecADY = pD[1] - pA[1]
+    var vecABX = pB[0] - pA[0]
+    var vecABY = pB[1] - pA[1]
+    var vecCDX = pD[0] - pC[0]
+    var vecCDY = pD[1] - pC[1]
+    return (this.vecCross(vecACX, vecACY, vecADX, vecADY) / this.vecCross(vecABX, vecABY, vecCDX, vecCDY))
   }
 }
 export default MyPolygon
