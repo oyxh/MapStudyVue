@@ -86,11 +86,11 @@ class MyPolygon {
         line = { // 水平线段
           S: {
             x: bounds.minX,
-            y: bounds.minY + (bounds.maxY - bounds.minY) / 4 + i * linesGap // 以1/4处为起始点按间距选pointNum条线
+            y: bounds.maxY - (bounds.maxY - bounds.minY) / 4 - i * linesGap // 以1/4处为起始点按间距选pointNum条线
           },
           E: {
             x: bounds.maxX,
-            y: bounds.minY + (bounds.maxY - bounds.minY) / 4 + i * linesGap
+            y: bounds.maxY - (bounds.maxY - bounds.minY) / 4 - i * linesGap
           }
         }
         lineList.push(line)
@@ -132,12 +132,6 @@ class MyPolygon {
         pD = [polygonLines[j].E.x, polygonLines[j].E.y]
         let cross = this.getgetOverlapCross(pA, pB, pC, pD)
         if (cross >= 0 && cross <= 1) {
-          console.log(pA[0] + cross * (pB[0] - pA[0]))
-          console.log(pA[1] + cross * (pB[1] - pA[1]))
-          console.log(pA)
-          console.log(pB)
-          console.log(pC)
-          console.log(pD)
           sumX += pA[0] + cross * (pB[0] - pA[0])
           sumY += pA[1] + cross * (pB[1] - pA[1])
           overlapCount += 1

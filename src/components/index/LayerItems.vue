@@ -99,10 +99,10 @@ export default {
   },
   methods: {
     initOverlays () {
-      this.initOneLayer(this.layersget[this.activeLayer].layerData)
-      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData)
+      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
+      this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
     },
-    initOneLayer (layerData) {
+    initOneLayer (layerData, isGroundData) {
       var map = this.$parent.map
       var max = 0
       var flag = false
@@ -113,9 +113,7 @@ export default {
           max = polygonData.length
           flag = true
         }
-        //  this.initPolygon(layerData[i], flag, layerData)
-        var polygonObject = new MyOverlay(map, layerData[i], flag)
-        console.log(polygonObject)
+        var polygonObject = new MyOverlay(map, layerData[i], flag, isGroundData)
       }
     },
     addLayer (gridName) {
