@@ -41,6 +41,7 @@ import MyOverlay from '../../utils/MyOverlay'
 export default {
   name: 'LayerItems',
   components: {PrompWindow},
+  props: ['map'],
   data: function () {
     return {
       activeLayer: 0,
@@ -50,7 +51,6 @@ export default {
       layersget: [],
       data2: [
       ],
-      map: null,
       drawTool: null
     }
   },
@@ -103,7 +103,7 @@ export default {
       this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
     },
     initOneLayer (layerData, isGroundData) {
-      var map = this.$parent.map
+      var map = this.map
       var max = 0
       var flag = false
       for (var i = 0; i < layerData.length; i++) {

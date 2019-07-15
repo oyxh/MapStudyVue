@@ -1,7 +1,7 @@
 <template>
   <div class="mapcontent" >
     <div class="leftsider" :class={active:isActive} >
-      <layer-item></layer-item>
+      <layer-item :map="map"></layer-item>
     </div>
     <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
       <div id="map" ></div>
@@ -37,20 +37,17 @@ export default {
   },
   mounted () {
     this.initMap()
+    console.log(this.map)
   },
   computed: {
     getClientHeight: function () {
       // 屏幕可视区域的高度
       let clientHeight = document.documentElement.clientHeight
-      console.log('clientWidth 1==' + document.documentElement.clientWidth + 'px')
-      console.log('clientHeight 1==' + clientHeight)
       // 窗口可视区域发生变化的时候执行
       window.onresize = () => {
         clientHeight = document.documentElement.clientHeight
-        console.log('clientHeight changed2==' + clientHeight)
         return clientHeight
       }
-      console.log('clientHeight 3==' + clientHeight)
       clientHeight = clientHeight - 100
       return clientHeight + 'px'
     }
@@ -78,7 +75,6 @@ export default {
       // link.href = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css';
       link.href = '../../../static/js/bmap/drawingManager.css'
       document.body.appendChild(link);
-      console.log('t start')
     },
     generateDrawTool () {
       var map = this.map
