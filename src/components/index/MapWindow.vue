@@ -1,24 +1,28 @@
 <template>
-  <div class="mapcontent" >
+ <!-- <div class="mapcontent" >
     <div class="leftsider" :class={active:isActive} >
-      <layer-item :map="map"></layer-item>
+      <layer-item :map="map" :layerChangeFromFather = "layerChange"></layer-item>
     </div>
     <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
       <div id="map" ></div>
     </div>
+  </div>-->
+  <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
+    <div id="map" ></div>
   </div>
 </template>
 
 <script>
 /* eslint-disable no-undef,semi */
 
-import LayerItem from './LayerItems.vue'
+/* import LayerItem from './LayerItems.vue' */
 export default {
   props: ['isActive'],
   name: 'MapWindow',
-  components: {LayerItem},
+  /* components: {LayerItem}, */
   data () {
     return {
+      layerChange: false, // layerChange 更新子组件的地图
       map: null, // 图层
       test: 'test',
       drawTool: null,
@@ -33,11 +37,14 @@ export default {
     }
   },
   created () {
-    this.loadBMapScript()
+    this.init()
+    //
   },
   mounted () {
+    console.log('map is mounted')
     this.initMap()
-    console.log(this.map)
+    this.layerChange = !this.layerChange // 子组件按数据生成覆盖物
+    // console.log(this.map)
   },
   computed: {
     getClientHeight: function () {
@@ -53,12 +60,54 @@ export default {
     }
   },
   methods: {
+    init: function () {
+      // console.log("初始化百度地图脚本...");
+      const AK = 'EPgo3ahLed1MOQlZDPg1fdl0DN7Pg07w'
+      const BMapURL = 'https://api.map.baidu.com/api?v=2.0&ak=' + AK + '&s=1&callback=onBMapCallback'
+      // var that = this
+      return new Promise((resolve, reject) => {
+        // 如果已加载直接返回
+        if (typeof BMap !== 'undefined') {
+          resolve(BMap);
+          return true;
+        }
+        // 百度地图异步加载回调处理
+        window.onBMapCallback = function () {
+          console.log('百度地图脚本初始化成功...');
+          resolve(BMap);
+          // that.loadBMapScript()
+          // that.initMap()
+        };
+
+        // 插入script脚本
+        let scriptNode = document.createElement('script');
+        scriptNode.setAttribute('type', 'text/javascript');
+        scriptNode.setAttribute('src', BMapURL);
+        document.body.appendChild(scriptNode);
+      });
+    },
     initMap () {
       var map = new window.BMap.Map('allmap', {enableMapClick: false})
-      var poi = new window.BMap.Point(116.307852, 40.057031)
-      map.centerAndZoom(poi, 16)
+      window.map = map
+      // this.map = map
+      // var poi = new BMap.Point(116.307852, 40.057031)
+      // map.centerAndZoom(poi, 16)
+      var point = new window.BMap.Point(116.404, 39.915)
+      map.centerAndZoom(point, 15)
+      // var marker = new BMap.Marker(new BMap.Point(116.404, 39.915)) // 创建点
+      var polygon = new window.BMap.Polygon([
+        new window.BMap.Point(116.387112, 39.920977),
+        new window.BMap.Point(116.385243, 39.913063),
+        new window.BMap.Point(116.394226, 39.917988),
+        new window.BMap.Point(116.401772, 39.921364),
+        new window.BMap.Point(116.41248, 39.927893)
+      ], {strokeColor: 'blue', strokeWeight: 2, strokeOpacity: 0.5}) // 创建多边形
+      map.addOverlay(polygon) // 增加多边形
+      polygon.addEventListener('click', function () {
+        alert('this overlay is click')
+      })
       map.enableScrollWheelZoom()
-      this.map = map
+      console.log('map1 is mounted')
     },
     loadBMapScript () {
       console.log('start')

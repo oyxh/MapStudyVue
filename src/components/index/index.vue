@@ -90,8 +90,9 @@
 <script>
 import MapWindow from './MapWindow.vue'
 import UserPanel from './UserPanel.vue'
+import Two from './two.vue'
 export default {
-  components: {MapWindow, UserPanel},
+  components: {MapWindow, UserPanel, Two},
   data: function () {
     return {
       isActive: true

@@ -20,7 +20,7 @@
       </div>
       <div>
         <button type="success" class ="buttonLeft"  @click="value2 = true" >选择区域</button>
-        <button type="success" class ="buttonRight">隐藏图层</button>
+        <button type="success" class ="buttonRight" @click = "countOverlays">隐藏图层</button>
         <button type="success" class ="buttonRight" @click="drawLayer">图层绘制</button>
       </div>
       <div>
@@ -41,11 +41,15 @@ import MyOverlay from '../../utils/MyOverlay'
 export default {
   name: 'LayerItems',
   components: {PrompWindow},
-  props: ['map'],
+  props: ['map', 'layerChangeFromFather'],
+  computed: {
+    layerChange: function () {
+      return this.layerChangeFromFather
+    }
+  },
   data: function () {
     return {
       activeLayer: 0,
-      layerChange: false,
       overlayMap: null,
       value2: false,
       layersget: [],
@@ -74,7 +78,7 @@ export default {
       .catch(function (error) {
         console.log(error)
       })
-    this.layerIsChange()
+    // this.layerIsChange()
     // this.watchLayerChange = !this.watchLayerChange // 该值变化singlelayer会重新请求数据库的图层信息并重新生成
   },
   watch: {
@@ -99,8 +103,9 @@ export default {
   },
   methods: {
     initOverlays () {
-      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
-      this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
+
+      // this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
+      // this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
     },
     initOneLayer (layerData, isGroundData) {
       var map = this.map
@@ -115,6 +120,9 @@ export default {
         }
         var polygonObject = new MyOverlay(map, layerData[i], flag, isGroundData)
       }
+    },
+    countOverlays () {
+      alert(this.map.getOverlays().length)
     },
     addLayer (gridName) {
       var that = this
