@@ -2,7 +2,7 @@ function LitOverlay (point, text) {
   this._points = point
   this._text = text
 }
-LitOverlay.prototype = new window.BMap.Overlay()
+LitOverlay.prototype = window.BMap.Overlay()
 LitOverlay.prototype.initialize = function (map) {
   this._map = map
   var divs = this._divs = []

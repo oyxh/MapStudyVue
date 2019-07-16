@@ -1,25 +1,26 @@
+<!--suppress ALL -->
 <template>
- <!-- <div class="mapcontent" >
+  <div class="mapcontent" >
     <div class="leftsider" :class={active:isActive} >
       <layer-item :map="map" :layerChangeFromFather = "layerChange"></layer-item>
     </div>
     <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
       <div id="map" ></div>
     </div>
-  </div>-->
-  <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
-    <div id="map" ></div>
   </div>
+<!--  <div id ="allmap" class = "allmapstyle" :class={active:isActive} :style="{'height':getClientHeight}">
+    <div id="map" ></div>
+  </div>-->
 </template>
 
 <script>
 /* eslint-disable no-undef,semi */
 
-/* import LayerItem from './LayerItems.vue' */
+import LayerItem from './LayerItems.vue'
 export default {
   props: ['isActive'],
   name: 'MapWindow',
-  /* components: {LayerItem}, */
+  components: {LayerItem},
   data () {
     return {
       layerChange: false, // layerChange 更新子组件的地图
@@ -37,14 +38,24 @@ export default {
     }
   },
   created () {
-    this.init()
-    //
   },
-  mounted () {
-    console.log('map is mounted')
-    this.initMap()
-    this.layerChange = !this.layerChange // 子组件按数据生成覆盖物
-    // console.log(this.map)
+  mounted: function () {
+    /*  this.loadScript()('../../../static/js/bmap/polygon.js', () => {
+        console.log('../../../static/js/bmap/polygon.js')
+      }).then(res => {
+        return res('../../../static/js/bmap/drawingManager.js', () => { console.log('../../../static/js/bmap/drawingManager.js') })
+      }) */
+    this.init().then((BMap) => {
+      // this.initMap()
+      this.loadScript()('../../../static/js/bmap/polygon.js', () => {
+        console.log('../../../static/js/bmap/polygon.js')
+      }).then(res => {
+        return res('../../../static/js/bmap/drawingManager.js', () => {
+          console.log('../../../static/js/bmap/drawingManager.js')
+          this.initMap()
+        })
+      })
+    })
   },
   computed: {
     getClientHeight: function () {
@@ -64,7 +75,6 @@ export default {
       // console.log("初始化百度地图脚本...");
       const AK = 'EPgo3ahLed1MOQlZDPg1fdl0DN7Pg07w'
       const BMapURL = 'https://api.map.baidu.com/api?v=2.0&ak=' + AK + '&s=1&callback=onBMapCallback'
-      // var that = this
       return new Promise((resolve, reject) => {
         // 如果已加载直接返回
         if (typeof BMap !== 'undefined') {
@@ -75,10 +85,7 @@ export default {
         window.onBMapCallback = function () {
           console.log('百度地图脚本初始化成功...');
           resolve(BMap);
-          // that.loadBMapScript()
-          // that.initMap()
         };
-
         // 插入script脚本
         let scriptNode = document.createElement('script');
         scriptNode.setAttribute('type', 'text/javascript');
@@ -88,42 +95,82 @@ export default {
     },
     initMap () {
       var map = new window.BMap.Map('allmap', {enableMapClick: false})
-      window.map = map
-      // this.map = map
-      // var poi = new BMap.Point(116.307852, 40.057031)
-      // map.centerAndZoom(poi, 16)
-      var point = new window.BMap.Point(116.404, 39.915)
-      map.centerAndZoom(point, 15)
-      // var marker = new BMap.Marker(new BMap.Point(116.404, 39.915)) // 创建点
-      var polygon = new window.BMap.Polygon([
-        new window.BMap.Point(116.387112, 39.920977),
-        new window.BMap.Point(116.385243, 39.913063),
-        new window.BMap.Point(116.394226, 39.917988),
-        new window.BMap.Point(116.401772, 39.921364),
-        new window.BMap.Point(116.41248, 39.927893)
-      ], {strokeColor: 'blue', strokeWeight: 2, strokeOpacity: 0.5}) // 创建多边形
-      map.addOverlay(polygon) // 增加多边形
-      polygon.addEventListener('click', function () {
-        alert('this overlay is click')
-      })
-      map.enableScrollWheelZoom()
-      console.log('map1 is mounted')
+      this.map = map
+      console.log(map)
+      map.centerAndZoom(new window.BMap.Point(116.404, 39.915), 16); // 初始化地图,设置中心点坐标和地图级别
+      // 添加地图类型控件
+      map.addControl(new window.BMap.MapTypeControl({
+        mapTypes: [
+          BMAP_NORMAL_MAP,
+          BMAP_HYBRID_MAP
+        ]}));
+      map.setCurrentCity('北京'); // 设置地图显示的城市 此项是必须设置的
+      map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+      console.log('map is mounted')
+      this.layerChange = !this.layerChange // 子组件按数据生成覆盖物
     },
-    loadBMapScript () {
-      console.log('start')
-      let script1 = document.createElement('script');
-      // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
-      script1.src = '../../../static/js/bmap/polygon.js';
-      document.body.appendChild(script1);
-      let script = document.createElement('script');
-      // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
-      script.src = '../../../static/js/bmap/drawingManager.js';
-      document.body.appendChild(script);
-      let link = document.createElement('link');
-      link.rel = 'stylesheet';
-      // link.href = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css';
-      link.href = '../../../static/js/bmap/drawingManager.css'
-      document.body.appendChild(link);
+    loadScript: function () {
+      return function _loadScript (url, callBack) {
+        return new Promise(function (resolve) {
+          console.log(url)
+          let script = document.createElement('script')
+          script.setAttribute('type', 'text/javascript')
+          if (script.readyState) {
+            // 兼容IE的script加载事件
+            script.onreadystatechange = function () {
+              // loaded ： 下载完毕 complete： 数据准备完毕。这两个状态ie可能同时出现或者只出现一个
+              if (script.readyState === 'loaded' || script.readyState === 'complete') {
+                // 防止加载两次
+                script.onreadystatechange = null
+                callBack()
+                // 把函数传递下去，保证能顺序加载js
+                resolve(_loadScript)
+              }
+            }
+          } else {
+            script.onload = function () {
+              callBack()
+              resolve(_loadScript)
+            }
+          }
+          script.src = url
+          console.log('load')
+          document.head.appendChild(script)
+        })
+      }
+    },
+    loadBMapScript: function () {
+      return new Promise((resolve, reject) => {
+        // 如果已加载直接返回
+        console.log('promidse')
+        console.log(BMap)
+        if (typeof DrawingManager !== 'undefined') {
+          console.log('promidse')
+          resolve(DrawingManager);
+          return true;
+        }
+        // 百度地图异步加载回调处理
+        window.onBMapCallback = function () {
+          console.log('DrawingManager初始化成功...');
+          resolve(DrawingManager);
+        }
+        // 插入script脚本
+        console.log('start')
+        let script1 = document.createElement('script');
+        script1.setAttribute('type', 'text/javascript');
+        // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
+        script1.src = '../../../static/js/bmap/polygon.js';
+        document.body.appendChild(script1);
+        let script = document.createElement('script');
+        // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
+        script.src = '../../../static/js/bmap/drawingManager.js';
+        document.body.appendChild(script);
+        let link = document.createElement('link');
+        link.rel = 'stylesheet';
+        // link.href = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css';
+        link.href = '../../../static/js/bmap/drawingManager.css'
+        document.body.appendChild(link);
+      })
     },
     generateDrawTool () {
       var map = this.map

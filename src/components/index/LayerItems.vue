@@ -56,12 +56,14 @@ export default {
       data2: [
       ],
       drawTool: null
+      // layerChange: this.layerChangeFromFather
     }
   },
   created () {
     this.overlayMap = new Map()
   },
   mounted () {
+    console.log('LayerItems is mounted')
     var that = this
     var postconfig = {
       method: 'get',
@@ -70,19 +72,17 @@ export default {
     this.axios(postconfig)
       .then(
         function (response) {
-          console.log(response)
           that.data2 = response.data
-          // that.initOverlays()// 初始化图层
         }
       )
       .catch(function (error) {
         console.log(error)
       })
     // this.layerIsChange()
-    // this.watchLayerChange = !this.watchLayerChange // 该值变化singlelayer会重新请求数据库的图层信息并重新生成
   },
   watch: {
     layerChange: function () { // 同步获取数据库的图层信息
+      console.log('layerChange is change')
       var that = this
       var postconfig = {
         method: 'get',
@@ -103,9 +103,10 @@ export default {
   },
   methods: {
     initOverlays () {
-
-      // this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
-      // this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
+      console.log('window.BMap')
+      console.log(window.BMap)
+      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
+      this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
     },
     initOneLayer (layerData, isGroundData) {
       var map = this.map
@@ -146,7 +147,6 @@ export default {
             that.activeLayer = 0
             var layerId = response.data.msg
             that.addLayerInPage(gridName, layerId)
-            console.log(response)
             // that.startDraw()
           })
         .catch(function (error) {
@@ -200,7 +200,6 @@ export default {
             .then(
               function (response) {
                 that.deleteSuccess(index)
-                console.log(response)
               })
             .catch(function (error) {
               console.log(error)
@@ -386,7 +385,6 @@ export default {
       this.axios(postconfig)
         .then(
           function (response) {
-            console.log(response)
             resFuc()
           }
         )

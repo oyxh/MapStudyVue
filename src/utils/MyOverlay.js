@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import MyPolygon from './MyPolygon'
-import LitOverlay from './LitOverlay'
+// import LitOverlay from './LitOverlay'
 class MyOverlay {
   constructor (map, layerData, flag, isGroundData) {
     console.log('MyOverlay is mounted')
@@ -19,11 +19,8 @@ class MyOverlay {
       this._pointArray.push(new window.BMap.Point(polygon.polygonData[i].lng, polygon.polygonData[i].lat))
     }
     this._overlay = new window.BMap.Polygon(this._pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
-    console.log(this._overlay)
     this._overlay.setFillOpacity(0.1)
     this._map.addOverlay(this._overlay)
-    console.log(this._overlay)
-    console.log(this._overlay.getMap())
     /* var removeMyOverlay = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
       map.removeOverlay(overlay)
       myClass.remove()

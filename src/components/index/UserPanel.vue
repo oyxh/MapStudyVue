@@ -26,7 +26,6 @@ export default {
       url: 'api/user'
     }).then(response => {
       that.username = response.data.user
-      console.log(response.data)
     }, response => {
       console.log('error')
     })
