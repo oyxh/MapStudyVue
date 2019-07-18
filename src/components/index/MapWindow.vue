@@ -1,4 +1,3 @@
-<!--suppress ALL -->
 <template>
   <div class="mapcontent" >
     <div class="leftsider" :class={active:isActive} >
@@ -14,7 +13,7 @@
 </template>
 
 <script>
-/* eslint-disable no-undef,semi */
+/* eslint-disable no-undef */
 
 import LayerItem from './LayerItems.vue'
 export default {
@@ -38,20 +37,16 @@ export default {
     }
   },
   created () {
+    this.loadBMapScript()
   },
   mounted: function () {
-    /*  this.loadScript()('../../../static/js/bmap/polygon.js', () => {
-        console.log('../../../static/js/bmap/polygon.js')
-      }).then(res => {
-        return res('../../../static/js/bmap/drawingManager.js', () => { console.log('../../../static/js/bmap/drawingManager.js') })
-      }) */
     this.init().then((BMap) => {
       // this.initMap()
       this.loadScript()('../../../static/js/bmap/polygon.js', () => {
-        console.log('../../../static/js/bmap/polygon.js')
+        // console.log('../../../static/js/bmap/polygon.js')
       }).then(res => {
         return res('../../../static/js/bmap/drawingManager.js', () => {
-          console.log('../../../static/js/bmap/drawingManager.js')
+          // console.log('../../../static/js/bmap/drawingManager.js')
           this.initMap()
         })
       })
@@ -78,41 +73,38 @@ export default {
       return new Promise((resolve, reject) => {
         // 如果已加载直接返回
         if (typeof BMap !== 'undefined') {
-          resolve(BMap);
-          return true;
+          resolve(BMap)
+          return true
         }
         // 百度地图异步加载回调处理
         window.onBMapCallback = function () {
-          console.log('百度地图脚本初始化成功...');
-          resolve(BMap);
-        };
+          console.log('百度地图脚本初始化成功...')
+          resolve(BMap)
+        }
         // 插入script脚本
-        let scriptNode = document.createElement('script');
-        scriptNode.setAttribute('type', 'text/javascript');
-        scriptNode.setAttribute('src', BMapURL);
-        document.body.appendChild(scriptNode);
-      });
+        let scriptNode = document.createElement('script')
+        scriptNode.setAttribute('type', 'text/javascript')
+        scriptNode.setAttribute('src', BMapURL)
+        document.body.appendChild(scriptNode)
+      })
     },
     initMap () {
       var map = new window.BMap.Map('allmap', {enableMapClick: false})
       this.map = map
-      console.log(map)
-      map.centerAndZoom(new window.BMap.Point(116.404, 39.915), 16); // 初始化地图,设置中心点坐标和地图级别
+      map.centerAndZoom(new window.BMap.Point(116.404, 39.915), 16) // 初始化地图,设置中心点坐标和地图级别
       // 添加地图类型控件
       map.addControl(new window.BMap.MapTypeControl({
         mapTypes: [
           BMAP_NORMAL_MAP,
           BMAP_HYBRID_MAP
-        ]}));
-      map.setCurrentCity('北京'); // 设置地图显示的城市 此项是必须设置的
-      map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
-      console.log('map is mounted')
+        ]}))
+      map.setCurrentCity('北京') // 设置地图显示的城市 此项是必须设置的
+      map.enableScrollWheelZoom(true) // 开启鼠标滚轮缩放
       this.layerChange = !this.layerChange // 子组件按数据生成覆盖物
     },
     loadScript: function () {
       return function _loadScript (url, callBack) {
         return new Promise(function (resolve) {
-          console.log(url)
           let script = document.createElement('script')
           script.setAttribute('type', 'text/javascript')
           if (script.readyState) {
@@ -134,43 +126,16 @@ export default {
             }
           }
           script.src = url
-          console.log('load')
           document.head.appendChild(script)
         })
       }
     },
     loadBMapScript: function () {
-      return new Promise((resolve, reject) => {
-        // 如果已加载直接返回
-        console.log('promidse')
-        console.log(BMap)
-        if (typeof DrawingManager !== 'undefined') {
-          console.log('promidse')
-          resolve(DrawingManager);
-          return true;
-        }
-        // 百度地图异步加载回调处理
-        window.onBMapCallback = function () {
-          console.log('DrawingManager初始化成功...');
-          resolve(DrawingManager);
-        }
-        // 插入script脚本
-        console.log('start')
-        let script1 = document.createElement('script');
-        script1.setAttribute('type', 'text/javascript');
-        // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
-        script1.src = '../../../static/js/bmap/polygon.js';
-        document.body.appendChild(script1);
-        let script = document.createElement('script');
-        // script.src = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js';
-        script.src = '../../../static/js/bmap/drawingManager.js';
-        document.body.appendChild(script);
-        let link = document.createElement('link');
-        link.rel = 'stylesheet';
-        // link.href = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css';
-        link.href = '../../../static/js/bmap/drawingManager.css'
-        document.body.appendChild(link);
-      })
+      let link = document.createElement('link')
+      link.rel = 'stylesheet'
+      // link.href = 'http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css';
+      link.href = '../../../static/js/bmap/drawingManager.css'
+      document.body.appendChild(link)
     },
     generateDrawTool () {
       var map = this.map
