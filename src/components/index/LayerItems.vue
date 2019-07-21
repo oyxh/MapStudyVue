@@ -103,23 +103,25 @@ export default {
   },
   methods: {
     initOverlays () {
-      console.log('window.BMap')
-      console.log(window.BMap)
       this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
       this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
+      this.setFocus(this.layersget[this.activeLayer].layerGroundData)
+    },
+    setFocus (layerData) {
+      var pointArray = []
+      for (var i = 0; i < layerData.length; i++) {
+        for (var j = 0; j < layerData[i].polygonData.length; j++) {
+          pointArray.push(new window.BMap.Point(layerData[i].polygonData[j].lng, layerData[i].polygonData[j].lat))
+        }
+      }
+      this.map.setViewport(pointArray)
     },
     initOneLayer (layerData, isGroundData) {
       var map = this.map
-      var max = 0
-      var flag = false
       for (var i = 0; i < layerData.length; i++) {
-        flag = false
-        var polygonData = layerData[i].polygonData
-        if (polygonData.length > max) {
-          max = polygonData.length
-          flag = true
-        }
-        var polygonObject = new MyOverlay(map, layerData[i], flag, isGroundData)
+        var polygonObject = new MyOverlay(map, layerData[i], layerData, this, isGroundData)
+        this.overlayMap.set(layerData[i], polygonObject)
+        // layerData[i].overlayEntity = polygonObject
       }
     },
     countOverlays () {
@@ -283,7 +285,16 @@ export default {
         layer.layerGroundData = formatGroundData
       })
     },
+    dataSynch: function () { // 同步第layerseq层的数据
+      this.overlayMap.forEach(function (value, key, map) {
+        if (!value._exist) {
+          map.delete(key)
+        }
+      })
+    },
     saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元
+      this.dataSynch(this.overlayMap)
+      console.log(this.overlayMap)
       var layer = this.layersget[this.activeLayer]
       var that = this
       if (layer.layerData !== null) {
@@ -302,8 +313,6 @@ export default {
         .then(
           function (response) {
             that.$Message.info('保存成功')
-            // that.layersget = response.data
-            // that.initOverlays()// 初始化图层
           }
         )
         .catch(function (error) {
@@ -329,7 +338,6 @@ export default {
         polygonData: []
       }
       gridPoly.polygonData = this.polyPathToJson(e.overlay.getPath())
-
       this.$Modal.confirm({
         title: '请输入网格信息：',
         // content: '<div><label>网格名称</label> <input v-model="value" placeholder="Enter something..."></input><br><br><label>网格经理</label> <input></input></div>',
@@ -365,9 +373,8 @@ export default {
         },
         onOk: function () {
           layer.layerData.push(gridPoly)
-          alert(window.test())
-          alert(gridPoly.polygonName)
-          alert(gridPoly.polygonMana)
+          var polygonObject = new MyOverlay(map, gridPoly, layer.layerData, this, false, e.overlay)
+          this.overlayMap.set(gridPoly, polygonObject)
         },
         onCancel: function () {
           map.removeOverlay(e.overlay)
