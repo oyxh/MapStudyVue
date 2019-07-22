@@ -2,8 +2,8 @@
   <div>
     <promp-window @sendName ="addLayer" ></promp-window>
     <br>
-   <Button type="primary" long>导入数据</Button>
-    <br><br>
+   <import-window :windowState="importData"></import-window>
+    <br>
     <Drawer title="选择区域" placement="left" :closable="false"  width="200px" v-model="value2" @on-close="drawerClose">
       <Tree :data="data2" ref="tree" ></Tree>
     </Drawer>
@@ -24,7 +24,7 @@
         <button type="success" class ="buttonRight" @click="drawLayer">图层绘制</button>
       </div>
       <div>
-        <button type="success" class ="buttonLeft">导入数据</button>
+        <button type="success" class ="buttonLeft" @click=importFromFile($event,layer.layerId,index)>导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
 
         <button type="success" class ="buttonRight" @click="saveLayer">保存图层</button>
@@ -37,10 +37,11 @@
 <script>
 /* eslint-disable no-unused-vars */
 import PrompWindow from './promp'
+import ImportWindow from './ImportWindow'
 import MyOverlay from '../../utils/MyOverlay'
 export default {
   name: 'LayerItems',
-  components: {PrompWindow},
+  components: {PrompWindow, ImportWindow},
   props: ['map', 'layerChangeFromFather'],
   computed: {
     layerChange: function () {
@@ -55,7 +56,8 @@ export default {
       layersget: [],
       data2: [
       ],
-      drawTool: null
+      drawTool: null,
+      importData: false
       // layerChange: this.layerChangeFromFather
     }
   },
@@ -105,7 +107,11 @@ export default {
     initOverlays () {
       this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
       this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
-      this.setFocus(this.layersget[this.activeLayer].layerGroundData)
+      if (this.layersget[this.activeLayer].layerGroundData.length > 0) {
+        this.setFocus(this.layersget[this.activeLayer].layerGroundData)
+      } else {
+        this.setFocus(this.layersget[this.activeLayer].layerData)
+      }
     },
     setFocus (layerData) {
       var pointArray = []
@@ -173,6 +179,9 @@ export default {
     },
     selectLayer (e, layerName, index) { // 选择图层
       this.activeLayer = index
+    },
+    importFromFile (e, layerId, index) { // 导入数据
+      this.importData = !this.importData
     },
     deleteLayer (e, layerId, index) { // 删除图层
       this.confirm(layerId, index) // 确认是否删除
@@ -410,7 +419,6 @@ export default {
       }
       return pointArrayJson
     }
-
   }
 }
 </script>
