@@ -15,15 +15,8 @@ export default {
       var that = this
       that.value = ''
       this.$Modal.confirm({
-        title: '请输入网格名称：',
+        title: '请输入图层名称：',
         render: (h) => {
-          /* const menuItems = ['首页', '搜索', '分类', '系统']
-          return h('ul',
-            {
-              class: {'uk-nav': true}
-            },
-            menuItems.map(item => h('li', item)))
-        } */
           return h('Input', {
             props: {
               value: this.value,

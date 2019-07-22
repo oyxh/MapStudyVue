@@ -54,6 +54,7 @@ export default {
       overlayMap: null,
       value2: false,
       layersget: [],
+      geometrys: [],
       data2: [
       ],
       drawTool: null,
@@ -95,7 +96,22 @@ export default {
           function (response) {
             console.log(response)
             that.layersget = response.data
-            that.initOverlays()// 初始化图层
+            // that.initOverlays()// 初始化图层
+          }
+        )
+        .catch(function (error) {
+          console.log(error)
+        })
+      var postconfig1 = {
+        method: 'get',
+        url: 'api/geometrylist'
+      }
+      this.axios(postconfig1)
+        .then(
+          function (response) {
+            console.log(response)
+            that.geometrys = response.data
+            // that.initOverlays()// 初始化图层
           }
         )
         .catch(function (error) {
