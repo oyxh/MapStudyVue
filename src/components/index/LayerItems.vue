@@ -8,7 +8,7 @@
       <Tree :data="data2" ref="tree" ></Tree>
     </Drawer>
     <div v-for="(layer,index) in this.layersget" :key="layer.layerId"  :style= "{height:'100%',display:'inline-block',marginBottom:'5px',border: index === activeLayer ? '2px solid blue' : '2px solid #66b3FF'}"
-         @click=selectLayer($event,layer.layerName,index) >
+         @click=selectLayer($event,layer.layerId,index) >
       <div class="layerstyle">
         <label>图层名称:{{layer.layerName}}- {{ index }}</label>
         <label >
@@ -55,8 +55,8 @@ export default {
       value2: false,
       layersget: [],
       geometrys: [],
-      data2: [
-      ],
+      geometrysInLayer: { },
+      data2: [],
       drawTool: null,
       importData: false
       // layerChange: this.layerChangeFromFather
@@ -111,7 +111,7 @@ export default {
           function (response) {
             console.log(response)
             that.geometrys = response.data
-            // that.initOverlays()// 初始化图层
+            that.initOverlays()// 初始化图层
           }
         )
         .catch(function (error) {
@@ -121,30 +121,34 @@ export default {
   },
   methods: {
     initOverlays () {
-      this.initOneLayer(this.layersget[this.activeLayer].layerGroundData, true)
-      this.initOneLayer(this.layersget[this.activeLayer].layerData, false)
-      if (this.layersget[this.activeLayer].layerGroundData.length > 0) {
-        this.setFocus(this.layersget[this.activeLayer].layerGroundData)
-      } else {
-        this.setFocus(this.layersget[this.activeLayer].layerData)
+      for (var i = 0; i < this.geometrys.length; i++) {
+        var layerId = this.geometrys[i].layerId
+        if (this.geometrysInLayer[layerId] === undefined) {
+          this.geometrysInLayer[layerId] = []
+        } else {
+          this.geometrysInLayer[layerId].push(this.geometrys[i])
+        }
+        this.initOneGeometry(this.geometrys, this.geometrys[i])
       }
     },
     setFocus (layerData) {
+      console.log(layerData)
       var pointArray = []
-      for (var i = 0; i < layerData.length; i++) {
-        for (var j = 0; j < layerData[i].polygonData.length; j++) {
-          pointArray.push(new window.BMap.Point(layerData[i].polygonData[j].lng, layerData[i].polygonData[j].lat))
+      if (layerData === undefined) {
+        pointArray.push(new window.BMap.Point(116.404, 39.915))
+      } else {
+        for (var i = 0; i < layerData.length; i++) {
+          for (var j = 0; j < layerData[i].geometryData.length; j++) {
+            pointArray.push(new window.BMap.Point(layerData[i].geometryData[j].lng, layerData[i].geometryData[j].lat))
+          }
         }
       }
       this.map.setViewport(pointArray)
     },
-    initOneLayer (layerData, isGroundData) {
+    initOneGeometry (geometrys, geometry) {
       var map = this.map
-      for (var i = 0; i < layerData.length; i++) {
-        var polygonObject = new MyOverlay(map, layerData[i], layerData, this, isGroundData)
-        this.overlayMap.set(layerData[i], polygonObject)
-        // layerData[i].overlayEntity = polygonObject
-      }
+      var polygonObject = new MyOverlay(map, geometry, geometrys, this)
+      this.overlayMap.set(geometry, polygonObject)
     },
     countOverlays () {
       alert(this.map.getOverlays().length)
@@ -193,8 +197,12 @@ export default {
     drawLayerFromData (layer) { // 画一个图层
 
     },
-    selectLayer (e, layerName, index) { // 选择图层
+    selectLayer (e, layerId, index) { // 选择图层
       this.activeLayer = index
+      console.log(layerId)
+      console.log(this.geometrysInLayer)
+      console.log(this.geometrysInLayer[layerId])
+      this.setFocus(this.geometrysInLayer[layerId])
     },
     importFromFile (e, layerId, index) { // 导入数据
       this.importData = !this.importData

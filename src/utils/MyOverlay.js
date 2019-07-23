@@ -2,17 +2,16 @@
 import MyPolygon from './MyPolygon'
 import LitOverlay from './LitOverlay'
 class MyOverlay {
-  constructor (map, layerData, arrayset, thisDom, isGroundData, overlay) {
+  constructor (map, geometry, geometrys, thisDom, overlay) {
     this._map = map
-    this._arrayset = arrayset
+    this._geometrys = geometrys
     this._thisDom = thisDom
-    this._isGroundData = isGroundData
-    this._layerData = layerData
+    this._geometry = geometry
     if (overlay === undefined) {
       this._pointArray = []
-      var polygon = this._layerData
-      for (var i = 0; i < polygon.polygonData.length; i++) {
-        this._pointArray.push(new window.BMap.Point(polygon.polygonData[i].lng, polygon.polygonData[i].lat))
+      var polygon = this._geometry
+      for (var i = 0; i < polygon.geometryData.length; i++) {
+        this._pointArray.push(new window.BMap.Point(polygon.geometryData[i].lng, polygon.geometryData[i].lat))
       }
       this._overlay = new window.BMap.Polygon(this._pointArray, {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
       this._overlay.setFillOpacity(0.1)
@@ -67,15 +66,12 @@ class MyOverlay {
   }
   coverseMapPointsToJson (pointArray) { // 转化为json
     var pointArrayJson = []
-    console.log(pointArrayJson)
     for (var k = 0; k < pointArray.length; k++) {
       pointArrayJson.push({
         'lng': pointArray[k].lng,
         'lat': pointArray[k].lat
       })
     }
-    console.log(pointArrayJson)
-    console.log('converse sucsees')
     return pointArrayJson
   }
   editContext () {
@@ -123,7 +119,7 @@ class MyOverlay {
     if (this._overlayLabel !== undefined) {
       this._overlayLabel.remove()
     }
-    var labelName = this._labelName = this._layerData.polygonName
+    var labelName = this._labelName = this._geometry.geometryName
     var labelPositoin = this._polygon.getSevaralPoint(labelName.length)
     this._overlayLabel = new LitOverlay(labelPositoin, labelName)
     this._map.addOverlay(this._overlayLabel)
