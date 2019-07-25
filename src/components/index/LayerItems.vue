@@ -125,9 +125,8 @@ export default {
         var layerId = this.geometrys[i].layerId
         if (this.geometrysInLayer[layerId] === undefined) {
           this.geometrysInLayer[layerId] = []
-        } else {
-          this.geometrysInLayer[layerId].push(this.geometrys[i])
         }
+        this.geometrysInLayer[layerId].push(this.geometrys[i])
         this.initOneGeometry(this.geometrys, this.geometrys[i])
       }
     },

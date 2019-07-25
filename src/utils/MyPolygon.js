@@ -65,6 +65,18 @@ class MyPolygon {
     }
     return res
   }
+
+  /**
+   * 排序坐标，先按X排序，再按Y排序
+   * @param a
+   * @param b
+   */
+  sortPoint (a, b) {
+    if (a.x - b.x == 0) {
+      return a.y - b.y
+    }
+    return a.x - b.x
+  }
   /*
 方法名称：getSevaralPoint
 功能描述：获取多边形里横向或竖向多个间隔相同的点，处于中间位置
@@ -121,22 +133,34 @@ class MyPolygon {
     var sumY = 0
     var overlapCount = 0
     var polygonLines = this.getPolygonLine()
+    var overlaps = []
+    console.log(polygonLines)
     for (let i = 0; i < lineList.length; i++) {
       sumX = 0
       sumY = 0
       overlapCount = 0
+      overlaps = []
       pA = [lineList[i].S.x, lineList[i].S.y]
       pB = [lineList[i].E.x, lineList[i].E.y]
       for (let j = 0; j < polygonLines.length; j++) {
         pC = [polygonLines[j].S.x, polygonLines[j].S.y]
         pD = [polygonLines[j].E.x, polygonLines[j].E.y]
-        let cross = this.getgetOverlapCross(pA, pB, pC, pD)
+        let cross = this.getgetOverlapCross(pC, pD, pA, pB)
         if (cross >= 0 && cross <= 1) {
-          sumX += pA[0] + cross * (pB[0] - pA[0])
-          sumY += pA[1] + cross * (pB[1] - pA[1])
+          console.log(cross)
+          console.log(pA)
+          console.log(pB)
+          console.log(pC)
+          console.log(pD)
+          overlaps.push({x: pC[0] + cross * (pD[0] - pC[0]), y: pC[1] + cross * (pD[1] - pC[1])}) // 交点+1
+          this._map.addOverlay(new window.BMap.Marker(new window.BMap.Point(pC[0] + cross * (pD[0] - pC[0]), pC[1] + cross * (pD[1] - pC[1]))))
+          sumX += pC[0] + cross * (pD[0] - pC[0])
+          sumY += pC[1] + cross * (pD[1] - pC[1])
           overlapCount += 1
         }
       }
+      overlaps.sort(this.sortPoint)
+      console.log(overlaps)
       resPoints.push([sumX / overlapCount, sumY / overlapCount])
     }
     return resPoints
@@ -190,9 +214,9 @@ class MyPolygon {
     var vecADY = pD[1] - pA[1]
     var vecABX = pB[0] - pA[0]
     var vecABY = pB[1] - pA[1]
-    var vecCDX = pD[0] - pC[0]
-    var vecCDY = pD[1] - pC[1]
-    return (this.vecCross(vecACX, vecACY, vecADX, vecADY) / this.vecCross(vecABX, vecABY, vecCDX, vecCDY))
+    var vecDCX = pC[0] - pD[0]
+    var vecDCY = pC[1] - pD[1]
+    return (this.vecCross(vecADX, vecADY, vecACX, vecACY) / this.vecCross(vecABX, vecABY, vecDCX, vecDCY))
   }
 }
 export default MyPolygon
