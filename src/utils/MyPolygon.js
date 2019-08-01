@@ -65,7 +65,37 @@ class MyPolygon {
     }
     return res
   }
-
+  distance (pointX, pointY) {
+    return Math.sqrt((pointX.x - pointY.x) * (pointX.x - pointY.x) + (pointX.y - pointY.y) * (pointX.y - pointY.y))
+  }
+  /**
+   * 多边形包含点，包含返回true,否则返回false
+   * @param point {x: ,y: }
+   */
+  contains (point) {
+    var overlapCount = 0
+    var polygonLines = this.getPolygonLine()
+    var pB = [this.getMinXMaxXminYmaxY().maxX + 0.01, this.getMinXMaxXminYmaxY().maxY + 0.01]
+    var pA = [point.x, point.y]
+    var pC = null
+    var pD = null
+    for (let i = 0; i < polygonLines.length; i++) {
+      pC = [polygonLines[i].S.x, polygonLines[i].S.y]
+      pD = [polygonLines[i].E.x, polygonLines[i].E.y]
+      let cross = this.getOverlapCross(pC, pD, pA, pB)
+      let cross1 = this.getOverlapCross(pA, pB, pC, pD)
+      if (cross >= 0 && cross <= 1 && cross1 >= 0 && cross1 <= 1) {
+        // this._map.addOverlay(new window.BMap.Marker(new window.BMap.Point(pC[0], pC[1])))
+        // this._map.addOverlay(new window.BMap.Marker(new window.BMap.Point(pD[0], pD[1])))
+        overlapCount += 1
+      }
+    }
+    if (overlapCount % 2 == 0) {
+      return false
+    } else {
+      return true
+    }
+  }
   /**
    * 排序坐标，先按X排序，再按Y排序
    * @param a
@@ -134,8 +164,7 @@ class MyPolygon {
     var overlapCount = 0
     var polygonLines = this.getPolygonLine()
     var overlaps = []
-    console.log(polygonLines)
-    for (let i = 0; i < lineList.length; i++) {
+    for (let i = 0; i < lineList.length; i++) { //  lineList.length
       sumX = 0
       sumY = 0
       overlapCount = 0
@@ -145,23 +174,37 @@ class MyPolygon {
       for (let j = 0; j < polygonLines.length; j++) {
         pC = [polygonLines[j].S.x, polygonLines[j].S.y]
         pD = [polygonLines[j].E.x, polygonLines[j].E.y]
-        let cross = this.getgetOverlapCross(pC, pD, pA, pB)
+        let cross = this.getOverlapCross(pC, pD, pA, pB)
         if (cross >= 0 && cross <= 1) {
-          console.log(cross)
-          console.log(pA)
-          console.log(pB)
-          console.log(pC)
-          console.log(pD)
           overlaps.push({x: pC[0] + cross * (pD[0] - pC[0]), y: pC[1] + cross * (pD[1] - pC[1])}) // 交点+1
-          this._map.addOverlay(new window.BMap.Marker(new window.BMap.Point(pC[0] + cross * (pD[0] - pC[0]), pC[1] + cross * (pD[1] - pC[1]))))
           sumX += pC[0] + cross * (pD[0] - pC[0])
           sumY += pC[1] + cross * (pD[1] - pC[1])
           overlapCount += 1
         }
       }
       overlaps.sort(this.sortPoint)
-      console.log(overlaps)
-      resPoints.push([sumX / overlapCount, sumY / overlapCount])
+      let dis = 0
+      let maxDis = 0
+      var startPoint = overlaps[0]
+      var endPoint = overlaps[0]
+      var maxGap = {startPoint: startPoint, endPoint: endPoint}
+      for (let j = 0; j < overlaps.length - 1; j++) { // overlaps.length - 1
+        let midPoint = {x: (overlaps[j].x + overlaps[j + 1].x) / 2, y: (overlaps[j].y + overlaps[j + 1].y) / 2}
+        if (this.contains(midPoint)) {
+          // endPoint = overlaps[j + 1]
+          dis += this.distance(overlaps[j], overlaps[j + 1])
+          endPoint = overlaps[j + 1]
+          if (dis > maxDis) {
+            maxDis = dis
+            dis = 0
+            maxGap.startPoint = startPoint
+            maxGap.endPoint = endPoint
+          }
+        } else {
+          startPoint = endPoint = overlaps[j + 1]
+        }
+      }
+      resPoints.push([(maxGap.startPoint.x + maxGap.endPoint.x) / 2, (maxGap.startPoint.y + maxGap.endPoint.y) / 2])
     }
     return resPoints
   }
@@ -202,12 +245,12 @@ class MyPolygon {
     return lineList
   }
   /*
-  方法名称：getgetOverlapCross
+  方法名称：getOverlapCross
   功能描述：求线段A(x1,y1)B(x2,y2)与C(x3,y3)D(x4,y4)的交点在AB上的位置
   参数描述：
   返回值:设交点为O，返回值为AO/AB，小于0交于A点左侧，大于1交于B点右侧，无穷大为平行，设最大值近似平行
   */
-  getgetOverlapCross (pA, pB, pC, pD) {
+  getOverlapCross (pA, pB, pC, pD) {
     var vecACX = pC[0] - pA[0]
     var vecACY = pC[1] - pA[1]
     var vecADX = pD[0] - pA[0]

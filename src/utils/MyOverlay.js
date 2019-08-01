@@ -2,9 +2,9 @@
 import MyPolygon from './MyPolygon'
 import LitOverlay from './LitOverlay'
 class MyOverlay {
-  constructor (map, geometry, geometrys, thisDom, overlay) {
+  constructor (map, geometry, geometrysInLayer, thisDom, overlay) {
     this._map = map
-    this._geometrys = geometrys
+    this._geometrysInLayer = geometrysInLayer
     this._thisDom = thisDom
     this._geometry = geometry
     if (overlay === undefined) {
@@ -57,11 +57,8 @@ class MyOverlay {
   deleteOverlay () {
     this._map.removeOverlay(this._overlay)
     this._overlayLabel.remove()
-    for (let i = 0; i < this._arrayset.length; i++) {
-      if (this._arrayset[i] === this._layerData) {
-        this._arrayset.splice(i, 1)
-      }
-    }
+    this._polygon = null
+    // this._geometrysInLayer.delete(this._geometry.geometryId)
     this._exist = false
   }
   coverseMapPointsToJson (pointArray) { // 转化为json

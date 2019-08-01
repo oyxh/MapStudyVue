@@ -27,7 +27,7 @@
         <button type="success" class ="buttonLeft" @click=importFromFile($event,layer.layerId,index)>导入数据</button>
         <button type="success" class ="buttonRight">清除图层</button>
 
-        <button type="success" class ="buttonRight" @click="saveLayer">保存图层</button>
+        <button type="success" class ="buttonRight" @click=saveLayer($event,layer.layerId,index)>保存图层</button>
 
       </div>
     </div>
@@ -48,13 +48,18 @@ export default {
       return this.layerChangeFromFather
     }
   },
+  /*
+geometrys 数组，从数据库获取，该user的所有几何体的数据库存储信息
+geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为一个map，图层id为layerId的所有几何体都存储在此，geometrysInLayer[layerId].set(geometryId,geometry),将geometrys中的单位映射至该数据
+页面所有操作都对geometrysInLayer进行
+*/
   data: function () {
     return {
       activeLayer: 0,
       overlayMap: null,
       value2: false,
-      layersget: [],
-      geometrys: [],
+      layersget: [], // 所有图层
+      geometrys: [], // 所有覆盖几何物体
       geometrysInLayer: { },
       data2: [],
       drawTool: null,
@@ -124,30 +129,87 @@ export default {
       for (var i = 0; i < this.geometrys.length; i++) {
         var layerId = this.geometrys[i].layerId
         if (this.geometrysInLayer[layerId] === undefined) {
-          this.geometrysInLayer[layerId] = []
+          this.geometrysInLayer[layerId] = new Map()
         }
-        this.geometrysInLayer[layerId].push(this.geometrys[i])
-        this.initOneGeometry(this.geometrys, this.geometrys[i])
+        this.geometrysInLayer[layerId].set(this.geometrys[i].geometryId, this.geometrys[i])
+        this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
+      this.setFocus(this.geometrysInLayer[this.layersget[0].layerId])
+      console.log(this.geometrysInLayer)
     },
     setFocus (layerData) {
-      console.log(layerData)
       var pointArray = []
       if (layerData === undefined) {
         pointArray.push(new window.BMap.Point(116.404, 39.915))
       } else {
-        for (var i = 0; i < layerData.length; i++) {
-          for (var j = 0; j < layerData[i].geometryData.length; j++) {
-            pointArray.push(new window.BMap.Point(layerData[i].geometryData[j].lng, layerData[i].geometryData[j].lat))
+        layerData.forEach(function (value) {
+          for (var j = 0; j < value.geometryData.length; j++) {
+            pointArray.push(new window.BMap.Point(value.geometryData[j].lng, value.geometryData[j].lat))
           }
-        }
+        })
       }
       this.map.setViewport(pointArray)
     },
-    initOneGeometry (geometrys, geometry) {
+    initOneGeometry (geometrysInLayer, geometry) {
       var map = this.map
-      var polygonObject = new MyOverlay(map, geometry, geometrys, this)
+      var polygonObject = new MyOverlay(map, geometry, geometrysInLayer, this)
       this.overlayMap.set(geometry, polygonObject)
+    },
+    dataSynch: function () { // 同步第layerseq层的数据
+      this.overlayMap.forEach(function (value, key, map) {
+        if (!value._exist) {
+          map.delete(key)
+        }
+      })
+    },
+    saveGemetrys (geometrys) { // 保存多个gemetry，批量保存
+
+    },
+    deleteGemetrys (geometrysId) { // 删除多个gemetry，批量删除
+      var that = this
+      var postconfig = {
+        method: 'post',
+        url: 'api/removegeometrys',
+        dataType: 'json',
+        data: geometrysId,
+        contentType: 'application/json'
+      }
+      this.axios(postconfig)
+        .then(
+          function (response) {
+            that.$Message.info('保存成功')
+          }
+        )
+        .catch(function (error) {
+          console.log(error)
+          that.$Message.info('保存未成功')
+        })
+    },
+    saveLayer: function (e, layerId, index) { // 保存图层  layer为数据，是layerget数组中的单元
+      console.log(this.overlayMap)
+      var that = this
+      var layer = this.layersget[this.activeLayer]
+      var geometrys = this.geometrysInLayer[layerId] // 为map数据集合,key为geometyrId,value为geometry
+      console.log(that.overlayMap)
+      var deleteGeometrys = []
+      geometrys.forEach(function (value, key, map) {
+        if (!that.overlayMap.get(value)._exist) { // this.overlayMap为map数据集合,key为geometry,value为MyOverlay
+          // console.log(value.geometryName)
+          deleteGeometrys.push(value.geometryId)
+          that.overlayMap.delete(value)
+          geometrys.delete(key)
+          // map.delete(key)
+        }
+      })
+      console.log(deleteGeometrys)
+      this.deleteGemetrys(deleteGeometrys)
+      // console.log([...geometrys.values()])
+      this.saveGemetrys([...geometrys.values()])
+      if (layer.layerData !== null) {
+      } else {
+        layer.layerData = []
+        // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
+      }
     },
     countOverlays () {
       alert(this.map.getOverlays().length)
@@ -198,9 +260,6 @@ export default {
     },
     selectLayer (e, layerId, index) { // 选择图层
       this.activeLayer = index
-      console.log(layerId)
-      console.log(this.geometrysInLayer)
-      console.log(this.geometrysInLayer[layerId])
       this.setFocus(this.geometrysInLayer[layerId])
     },
     importFromFile (e, layerId, index) { // 导入数据
@@ -316,41 +375,6 @@ export default {
         map.setViewport(pointArray[maxSeq])
         layer.layerGroundData = formatGroundData
       })
-    },
-    dataSynch: function () { // 同步第layerseq层的数据
-      this.overlayMap.forEach(function (value, key, map) {
-        if (!value._exist) {
-          map.delete(key)
-        }
-      })
-    },
-    saveLayer: function () { // 保存图层  layer为数据，是layerget数组中的单元
-      this.dataSynch(this.overlayMap)
-      console.log(this.overlayMap)
-      var layer = this.layersget[this.activeLayer]
-      var that = this
-      if (layer.layerData !== null) {
-      } else {
-        layer.layerData = []
-        // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
-      }
-      var postconfig = {
-        method: 'post',
-        url: 'api/savelayer',
-        dataType: 'json',
-        data: layer,
-        contentType: 'application/json'
-      }
-      this.axios(postconfig)
-        .then(
-          function (response) {
-            that.$Message.info('保存成功')
-          }
-        )
-        .catch(function (error) {
-          console.log(error)
-          that.$Message.info('保存未成功')
-        })
     },
     drawLayer () { // 开始绘制区域图层
       this.generateDrawTool()
