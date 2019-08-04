@@ -27,6 +27,7 @@ class MyOverlay {
     this._polygon = new MyPolygon(this._pointArray, this._map)
     this.showLabel()
     this._exist = true
+    this._isEdit = false
     var map = this._map
     var that = this
     var removeMyOverlay = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
@@ -36,7 +37,7 @@ class MyOverlay {
       overlay.enableEditing()
     }
     var editClose = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
-      that._layerData.polygonData = that.coverseMapPointsToJson(overlay.getPath())
+      that._geometry.geometryData = that.coverseMapPointsToJson(overlay.getPath())
       overlay.disableEditing()
     }
     var editName = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
@@ -73,32 +74,39 @@ class MyOverlay {
   }
   editContext () {
     var that = this
+    console.log(that._geometry)
+    console.log(that._geometry.geometryName)
     this._thisDom.$Modal.confirm({
       title: '请输入网格信息：',
       render: (h) => {
         const inputData = [{
           domProps: {
-            value: that._layerData.polygonName,
+            value: that._geometry.geometryName,
             autofocus: true,
-            placeholder: '请输入网格名字...',
             style: 'color:red;width:100%;margin-bottom:8px'
           },
           on: {
             input: (val) => {
-              that._labelName = that._layerData.polygonName = val.target.value
+              if (val.target.value !== that._geometry.geometryName) {
+                that._labelName = that._geometry.geometryName = val.target.value
+                that._isEdit = true
+              }
             }
           }
         },
         {
           domProps: {
-            value: that._layerData.polygonMana,
+            value: that._geometry.geometryDes,
             autofocus: true,
             placeholder: '请输入网格负责人...',
             style: 'color:red;width:100%'
           },
           on: {
             input: (val) => {
-              that._layerData.polygonMana = val.target.value
+              if (val.target.value !== that._geometry.geometryDes) {
+                that._geometry.geometryDes = val.target.value
+                that._isEdit = true
+              }
             }
           }
         }
@@ -151,6 +159,12 @@ class MyOverlay {
   }
   set exist (exist) {
     this._exist = exist
+  }
+  get isEdit () {
+    return this._isEdit
+  }
+  set isEdit (isEdit) {
+    this._isEdit = isEdit
   }
 }
 export default MyOverlay

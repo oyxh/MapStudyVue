@@ -16,6 +16,7 @@
 /* eslint-disable no-undef */
 
 import LayerItem from './LayerItems.vue'
+import MyControl from '../../utils/MyControl'
 export default {
   props: ['isActive'],
   name: 'MapWindow',
@@ -41,12 +42,9 @@ export default {
   },
   mounted: function () {
     this.init().then((BMap) => {
-      // this.initMap()
       this.loadScript()('../../../static/js/bmap/polygon.js', () => {
-        // console.log('../../../static/js/bmap/polygon.js')
       }).then(res => {
         return res('../../../static/js/bmap/drawingManager.js', () => {
-          // console.log('../../../static/js/bmap/drawingManager.js')
           this.initMap()
         })
       })
@@ -98,6 +96,9 @@ export default {
           BMAP_NORMAL_MAP,
           BMAP_HYBRID_MAP
         ]}))
+      var myZoomCtrl = new MyControl()
+      // 添加到地图当中
+      map.addControl(myZoomCtrl)
       map.setCurrentCity('北京') // 设置地图显示的城市 此项是必须设置的
       map.enableScrollWheelZoom(true) // 开启鼠标滚轮缩放
       this.layerChange = !this.layerChange // 子组件按数据生成覆盖物

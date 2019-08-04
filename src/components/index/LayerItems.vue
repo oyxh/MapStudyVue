@@ -96,35 +96,24 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         method: 'get',
         url: 'api/layerlist'
       }
-      this.axios(postconfig)
-        .then(
-          function (response) {
-            console.log(response)
-            that.layersget = response.data
-            // that.initOverlays()// 初始化图层
-          }
-        )
-        .catch(function (error) {
-          console.log(error)
-        })
       var postconfig1 = {
         method: 'get',
         url: 'api/geometrylist'
       }
-      this.axios(postconfig1)
-        .then(
-          function (response) {
-            console.log(response)
-            that.geometrys = response.data
-            that.initOverlays()// 初始化图层
-          }
-        )
-        .catch(function (error) {
+      this.axios.all([that.axiosRequest(postconfig), that.axiosRequest(postconfig1)])
+        .then(this.axios.spread(function (acct, perms) {
+          that.layersget = acct.data
+          that.geometrys = perms.data
+          that.initOverlays()// 初始化图层
+        })).catch(error => {
           console.log(error)
         })
     }
   },
   methods: {
+    axiosRequest (postconfig) { // 删除多个gemetry，批量删除
+      return this.axios(postconfig)
+    },
     initOverlays () {
       for (var i = 0; i < this.geometrys.length; i++) {
         var layerId = this.geometrys[i].layerId
@@ -134,6 +123,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         this.geometrysInLayer[layerId].set(this.geometrys[i].geometryId, this.geometrys[i])
         this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
+      console.log(this.layersget[0].layerId)
       this.setFocus(this.geometrysInLayer[this.layersget[0].layerId])
       console.log(this.geometrysInLayer)
     },
@@ -162,10 +152,13 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         }
       })
     },
-    saveGemetrys (geometrys) { // 保存多个gemetry，批量保存
-
+    synchDelete (geometrysId, geometrys) { // 同步页面上删除的数据
+      for (let geometryId of geometrysId) {
+        this.overlayMap.delete(geometrys.get(geometryId))
+        geometrys.delete(geometryId)
+      }
     },
-    deleteGemetrys (geometrysId) { // 删除多个gemetry，批量删除
+    deleteGeometrys (geometrysId) { // 删除多个gemetry，批量删除
       var that = this
       var postconfig = {
         method: 'post',
@@ -174,16 +167,23 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         data: geometrysId,
         contentType: 'application/json'
       }
-      this.axios(postconfig)
-        .then(
-          function (response) {
-            that.$Message.info('保存成功')
-          }
-        )
-        .catch(function (error) {
-          console.log(error)
-          that.$Message.info('保存未成功')
-        })
+      return this.axios(postconfig)
+    },
+    synchEdit (geometrys) { // 恢复编辑的区域为未编辑区
+      for (let geometry of geometrys) {
+        this.overlayMap.get(geometry)._isEdit = false
+      }
+    },
+    editGeometrys (geometrys) { // 删除多个gemetry，批量删除
+      var that = this
+      var postconfig = {
+        method: 'post',
+        url: 'api/editgeometrys',
+        dataType: 'json',
+        data: geometrys,
+        contentType: 'application/json'
+      }
+      return this.axios(postconfig)
     },
     saveLayer: function (e, layerId, index) { // 保存图层  layer为数据，是layerget数组中的单元
       console.log(this.overlayMap)
@@ -192,24 +192,26 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       var geometrys = this.geometrysInLayer[layerId] // 为map数据集合,key为geometyrId,value为geometry
       console.log(that.overlayMap)
       var deleteGeometrys = []
+      var deleteGeometrysId = []
+      var editGeometrys = []
       geometrys.forEach(function (value, key, map) {
         if (!that.overlayMap.get(value)._exist) { // this.overlayMap为map数据集合,key为geometry,value为MyOverlay
-          // console.log(value.geometryName)
-          deleteGeometrys.push(value.geometryId)
-          that.overlayMap.delete(value)
-          geometrys.delete(key)
-          // map.delete(key)
+          deleteGeometrysId.push(key)
+        } else if (that.overlayMap.get(value)._isEdit) {
+          editGeometrys.push(value)
         }
       })
-      console.log(deleteGeometrys)
-      this.deleteGemetrys(deleteGeometrys)
-      // console.log([...geometrys.values()])
-      this.saveGemetrys([...geometrys.values()])
-      if (layer.layerData !== null) {
-      } else {
-        layer.layerData = []
-        // layer.layerGroundData = [{polygonName: '', polygonMana: '', polygonData: [{lat: 130, lng: 120}]}]
-      }
+      this.axios.all([that.deleteGeometrys(deleteGeometrysId), that.editGeometrys(editGeometrys)])
+        .then(this.axios.spread(function (acct, perms) {
+          console.log(acct)
+          console.log(perms)
+          that.synchEdit(editGeometrys)
+          that.synchDelete(deleteGeometrysId, geometrys)
+          that.$Message.info('保存成功')
+        })).catch(error => {
+          that.$Message.info('保存未成功')
+          console.log(error)
+        })
     },
     countOverlays () {
       alert(this.map.getOverlays().length)
@@ -259,8 +261,10 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
 
     },
     selectLayer (e, layerId, index) { // 选择图层
-      this.activeLayer = index
-      this.setFocus(this.geometrysInLayer[layerId])
+      if (this.activeLayer !== index) {
+        this.activeLayer = index
+        this.setFocus(this.geometrysInLayer[layerId])
+      }
     },
     importFromFile (e, layerId, index) { // 导入数据
       this.importData = !this.importData
@@ -436,25 +440,6 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           map.removeOverlay(e.overlay)
         }
       })
-    },
-    axiosRequest (type, url, data, resFuc, errerFuc) {
-      var postconfig = {
-        method: type,
-        url: url,
-        dataType: 'json',
-        data: data,
-        contentType: 'application/json'
-      }
-      this.axios(postconfig)
-        .then(
-          function (response) {
-            resFuc()
-          }
-        )
-        .catch(function (error) {
-          console.log(error)
-          errerFuc()
-        })
     },
     polyPathToJson (pointArray) { // 多边形的path 变为json
       var pointArrayJson = []
