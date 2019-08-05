@@ -1,6 +1,7 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars,eqeqeq */
 import MyPolygon from './MyPolygon'
 import LitOverlay from './LitOverlay'
+import EditOverlay from './EditOverlay'
 class MyOverlay {
   constructor (map, geometry, geometrysInLayer, thisDom, overlay) {
     this._map = map
@@ -34,11 +35,21 @@ class MyOverlay {
       that.deleteOverlay()
     }
     var editMyOverlay = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
-      overlay.enableEditing()
+      // overlay.enableEditing()
+      console.log('edit')
+      console.log(that._editOverlays)
+      if (that._editOverlays == undefined) {
+        console.log('edit')
+        that._editOverlays = new EditOverlay(map, overlay)
+        console.log(that._editOverlays)
+      } else {
+        that._editOverlays.addOverlays()
+      }
     }
     var editClose = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
       that._geometry.geometryData = that.coverseMapPointsToJson(overlay.getPath())
-      overlay.disableEditing()
+      that._editOverlays.remove()
+      // overlay.disableEditing()
     }
     var editName = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
       that.editContext()
