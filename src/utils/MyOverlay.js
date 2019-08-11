@@ -35,20 +35,27 @@ class MyOverlay {
       that.deleteOverlay()
     }
     var editMyOverlay = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
-      // overlay.enableEditing()
-      console.log('edit')
-      console.log(that._editOverlays)
       if (that._editOverlays == undefined) {
-        console.log('edit')
-        that._editOverlays = new EditOverlay(map, overlay)
-        console.log(that._editOverlays)
+        that._editOverlays = new EditOverlay(map, overlay, that._geometry.geometryData)
       } else {
         that._editOverlays.addOverlays()
       }
+      that._isEdit = true
     }
-    var editClose = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
-      that._geometry.geometryData = that.coverseMapPointsToJson(overlay.getPath())
+    var editClose = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物 只保存编辑
+      // that._geometry.geometryData = that.coverseMapPointsToJson(overlay.getPath())
       that._editOverlays.remove()
+      var geometrys = [that._geometry]
+      that._thisDom.editGeometrys(geometrys)
+        .then(function (response) {
+          console.log(response)
+          that._isEdit = false
+          that._thisDom.$Message.info('保存成功')
+        })
+        .catch(function (error) {
+          console.log(error)
+          that._thisDom.$Message.info('保存未成功')
+        }) // axios
       // overlay.disableEditing()
     }
     var editName = function (e, ee, overlay) { // 回掉函数有三个参数，前两个事件，第三个覆盖物
@@ -63,12 +70,11 @@ class MyOverlay {
       markerMenu.addItem(new window.BMap.MenuItem('保存编辑', editClose.bind(this._overlay)))
       this._overlay.addContextMenu(markerMenu)
     }
-    /* var myClass = this._overlayLabel = new LitOverlay(labelPositoin, labelName)
-    this.map.addOverlay(this._overlayLabel) */
   }
   deleteOverlay () {
     this._map.removeOverlay(this._overlay)
     this._overlayLabel.remove()
+    this._editOverlays.remove()
     this._polygon = null
     // this._geometrysInLayer.delete(this._geometry.geometryId)
     this._exist = false
