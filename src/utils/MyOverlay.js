@@ -74,7 +74,9 @@ class MyOverlay {
   deleteOverlay () {
     this._map.removeOverlay(this._overlay)
     this._overlayLabel.remove()
-    this._editOverlays.remove()
+    if (this._editOverlays !== undefined) {
+      this._editOverlays.remove()
+    }
     this._polygon = null
     // this._geometrysInLayer.delete(this._geometry.geometryId)
     this._exist = false

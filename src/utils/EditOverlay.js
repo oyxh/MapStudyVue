@@ -8,7 +8,9 @@ function EditOverlay (map, overlay, polygonData) {
 }
 EditOverlay.prototype.initialize = function (map, overlay) {
   this._points = overlay.getPath()
+  this._middlePoints = []
   this._circles = [] // 存储编辑点
+  this._middles = [] // 存储中间编辑点(覆盖物)
   let radius = this.getCircleRadius()
   var that = this
   var deletePoint = this._deletePoint = function (e, ee, overlay) { // 编辑点右键响应函数
@@ -36,12 +38,27 @@ EditOverlay.prototype.initialize = function (map, overlay) {
     anewcircle.addEventListener('click', dragStart)
     this._circles.push(anewcircle)
     map.addOverlay(anewcircle)
+    // 以上为多边形的顶点，以下为多边形的线段中点
+    let midlng = (this._points[i].lng + this._points[(i + 1) % this._points.length].lng) / 2
+    let midlat = (this._points[i].lat + this._points[(i + 1) % this._points.length].lat) / 2
+    var addPoints = []
+    addPoints.push(new window.BMap.Point(midlng, midlat))
+    this.addMiddle(i, 0, addPoints)
+  /*  var middlePoint = new window.BMap.Point(midlng, midlat)
+    this._middlePoints.push(middlePoint)
+    var amiddle = new window.BMap.Circle(middlePoint, radius * 0.9)
+    amiddle.setFillColor('green')
+    amiddle.setFillOpacity(1)
+    this._middles.push(amiddle)
+    map.addOverlay(amiddle) */
   }
+  console.log(this._middles)
   this._zoomListen = function (e) {
     console.log('zoomend')
     let radius = that.getCircleRadius()
     for (let i = 0; i < that._circles.length; i++) {
       that._circles[i].setRadius(radius)
+      that._middles[i].setRadius(radius * 0.9)
     }
   }
   this._map.addEventListener('zoomend', this._zoomListen)
@@ -58,13 +75,31 @@ EditOverlay.prototype.addOverlays = function () {
   this._map.addEventListener('zoomend', this._zoomListen)
   for (let i = 0; i < this._circles.length; i++) {
     this._map.addOverlay(this._circles[i])
+    this._map.addOverlay(this._middles[i])
   }
 }
 EditOverlay.prototype.remove = function () {
   this._map.removeEventListener('zoomend', this._zoomListen)
   for (let i = 0; i < this._circles.length; i++) {
     this._map.removeOverlay(this._circles[i])
+    this._map.removeOverlay(this._middles[i])
   }
+}
+EditOverlay.prototype.addMiddle = function (startIndex, num, addArray) { // startIndex ，替换起始序号，num替换数量，addArray:增加的中间点的点坐标（Point类型）
+  for (let i = startIndex; i < num; i++) {
+    this._map.removeOverlay(this._middles[i])
+  }
+  var addMiddlePoint = []
+  let radius = this.getCircleRadius()
+  for (let i = 0; i < addArray.length; i++) {
+    var amiddle = new window.BMap.Circle(addArray[i], radius * 0.9)
+    amiddle.setFillColor('green')
+    amiddle.setFillOpacity(1)
+    addMiddlePoint.push(amiddle)
+    this._map.addOverlay(amiddle)
+  }
+  this._middlePoints.splice(startIndex, num, addArray)
+  this._middles.splice(startIndex, num, addMiddlePoint)
 }
 EditOverlay.prototype.getPointIndex = function (point) {
   for (let i = 0; i < this._points.length; i++) {
