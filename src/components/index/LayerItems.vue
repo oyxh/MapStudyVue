@@ -38,7 +38,7 @@
 /* eslint-disable no-unused-vars */
 import PrompWindow from './promp'
 import ImportWindow from './ImportWindow'
-import MyOverlay from '../../utils/MyOverlay'
+import Mask from '../../utils/Mask'
 export default {
   name: 'LayerItems',
   components: {PrompWindow, ImportWindow},
@@ -63,7 +63,8 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       geometrysInLayer: { },
       data2: [],
       drawTool: null,
-      importData: false
+      importData: false,
+      mask: null
       // layerChange: this.layerChangeFromFather
     }
   },
@@ -121,11 +122,12 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           this.geometrysInLayer[layerId] = new Map()
         }
         this.geometrysInLayer[layerId].set(this.geometrys[i].geometryId, this.geometrys[i])
-        this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
+        // this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
       console.log(this.layersget[0].layerId)
       this.setFocus(this.geometrysInLayer[this.layersget[0].layerId])
       console.log(this.geometrysInLayer)
+      this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap)
     },
     setFocus (layerData) {
       var pointArray = []
@@ -141,9 +143,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       this.map.setViewport(pointArray)
     },
     initOneGeometry (geometrysInLayer, geometry) {
-      var map = this.map
+      /*      var map = this.map
       var polygonObject = new MyOverlay(map, geometry, geometrysInLayer, this)
-      this.overlayMap.set(geometry, polygonObject)
+      this.overlayMap.set(geometry, polygonObject) */
     },
     dataSynch: function () { // 同步第layerseq层的数据
       this.overlayMap.forEach(function (value, key, map) {
@@ -432,9 +434,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           return h('div', inputData.map(item => h('input', item)))
         },
         onOk: function () {
-          layer.layerData.push(gridPoly)
+          /*          layer.layerData.push(gridPoly)
           var polygonObject = new MyOverlay(map, gridPoly, layer.layerData, this, false, e.overlay)
-          this.overlayMap.set(gridPoly, polygonObject)
+          this.overlayMap.set(gridPoly, polygonObject) */
         },
         onCancel: function () {
           map.removeOverlay(e.overlay)
