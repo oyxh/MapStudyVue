@@ -53,6 +53,7 @@ EditOverlay.prototype.initialize = function (map, overlay) {
     map.addOverlay(amiddle) */
   }
   console.log(this._middles)
+  console.log(this._circles)
   this._zoomListen = function (e) {
     console.log('zoomend')
     let radius = that.getCircleRadius()
@@ -89,17 +90,17 @@ EditOverlay.prototype.addMiddle = function (startIndex, num, addArray) { // star
   for (let i = startIndex; i < num; i++) {
     this._map.removeOverlay(this._middles[i])
   }
-  var addMiddlePoint = []
   let radius = this.getCircleRadius()
+  this._middlePoints.splice(startIndex, num)
+  this._middles.splice(startIndex, num)
   for (let i = 0; i < addArray.length; i++) {
     var amiddle = new window.BMap.Circle(addArray[i], radius * 0.9)
     amiddle.setFillColor('green')
     amiddle.setFillOpacity(1)
-    addMiddlePoint.push(amiddle)
     this._map.addOverlay(amiddle)
+    this._middlePoints.splice(startIndex + i, 0, addArray[i])
+    this._middles.splice(startIndex + i, 0, amiddle)
   }
-  this._middlePoints.splice(startIndex, num, addArray)
-  this._middles.splice(startIndex, num, addMiddlePoint)
 }
 EditOverlay.prototype.getPointIndex = function (point) {
   for (let i = 0; i < this._points.length; i++) {
