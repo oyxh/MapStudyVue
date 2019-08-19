@@ -127,7 +127,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       console.log(this.layersget[0].layerId)
       this.setFocus(this.geometrysInLayer[this.layersget[0].layerId])
       console.log(this.geometrysInLayer)
-      this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap)
+      this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap, this)
     },
     setFocus (layerData) {
       var pointArray = []
