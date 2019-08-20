@@ -12,7 +12,10 @@ function MyOverlay (map, geometry, overlay, layerItem, mask) {
 }
 MyOverlay.prototype.initialize = function () {
   this._pointArray = this._overlay.getPath()
-  this._middleArray = this.getMiddlePoints(this._pointArray)
+  this._middleArray = []
+  for (let i = 0; i < this._pointArray.length; i++) {
+    this._middleArray.push(this.getMiddlePoint(this._pointArray[i], this._pointArray[(i + 1) % this._pointArray.length]))
+  }
   this._pointCircles = []
   this._middleCircles = []
   this._polygon = new MyPolygon(this._pointArray, this._map)
@@ -26,15 +29,21 @@ MyOverlay.prototype.initialize = function () {
   markerMenu.addItem(new window.BMap.MenuItem('保存编辑', this.editClose.bind(this)))
   this._overlay.addContextMenu(markerMenu)
 }
-MyOverlay.prototype.getMiddlePoints = function (points) {
-  var middleArray = []
-  for (let i = 0; i < points.length; i++) {
-    let next = (i + 1) % points.length
-    var midLng = (points[i].lng + points[next].lng) / 2
-    var midLat = (points[i].lat + points[next].lat) / 2
-    middleArray.push(new window.BMap.Point(midLng, midLat))
+MyOverlay.prototype.getMiddlePoint = function (point1, point2) {
+  var midLng = (point1.lng + point2.lng) / 2
+  var midLat = (point1.lat + point2.lat) / 2
+  return new window.BMap.Point(midLng, midLat)
+}
+MyOverlay.prototype.getIndex = function (mycircle) {
+  var index = -1
+  for (let i = 0; i < this._pointArray.length; i++) {
+    var tempPoint = (mycircle._type == 'point') ? this._pointArray[i] : this._middleArray[i]
+    if (tempPoint == mycircle._circle.getCenter()) {
+      index = i
+      return index
+    }
   }
-  return middleArray
+  return index
 }
 MyOverlay.prototype.showLabel = function () { // 显示多边形的名字
   if (this._overlayLabel !== undefined) {
@@ -144,6 +153,7 @@ MyOverlay.prototype.addEditPoints = function (mycircle) {
 }
 MyOverlay.prototype.deletePoint = function (mycircle) {
   console.log('delete Point')
+  var index = this.getIndex(mycircle)
 }
 MyOverlay.prototype.removeEditPoints = function () {
   for (let i = 0; i < this._pointCircles.length; i++) {
