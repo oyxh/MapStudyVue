@@ -13,12 +13,22 @@ MyCircle.prototype.initialize = function () {
   this._radius = (this._type == 'point') ? this._radius : this._radius * 0.9
   this._circle = new window.BMap.Circle(this._centre, this._radius)
   this._circle.setFillColor(this._color)
+  this._circle.setStrokeColor(this._color)
   this._circle.setFillOpacity(1)
+  var markerMenu = new window.BMap.ContextMenu()
+  markerMenu.addItem(new window.BMap.MenuItem('删除点', this.deletePoint.bind(this)))
+  if (this._type == 'point') {
+    this._circle.addContextMenu(markerMenu)
+  }
+
   /*  var markerMenu = new window.BMap.ContextMenu()
   markerMenu.addItem(new window.BMap.MenuItem('删除点', this.deletePoint.bind(this)))
   anewcircle.addContextMenu(markerMenu) // 以上三行添加编辑点右键菜单
   anewcircle.addEventListener('click', this.dragStart.bind(anewcircle)) */
   // this._myOverlay.addEditPoints(this)
   // this._map.addOverlay(this._circle)
+}
+MyCircle.prototype.deletePoint = function (e, ee) {
+  this._myOverlay.deletePoint(this)
 }
 export default MyCircle

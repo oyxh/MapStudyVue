@@ -120,6 +120,7 @@ MyOverlay.prototype.editMyOverlay = function (e, ee) {
 MyOverlay.prototype.editClose = function (e, ee) {
   var that = this
   // that._editOverlays.remove()
+  this.removeEditPoints()
   var geometrys = [that._geometry]
   that._layerItem.editGeometrys(geometrys)
     .then(function (response) {
@@ -140,7 +141,16 @@ MyOverlay.prototype.addEditPoints = function (mycircle) {
   } else {
     this._middleCircles.push(mycircle)
   }
-  console.log('editMyOverlay')
 }
-
+MyOverlay.prototype.deletePoint = function (mycircle) {
+  console.log('delete Point')
+}
+MyOverlay.prototype.removeEditPoints = function () {
+  for (let i = 0; i < this._pointCircles.length; i++) {
+    this._map.removeOverlay(this._pointCircles[i]._circle)
+    this._map.removeOverlay(this._middleCircles[i]._circle)
+  }
+  this._pointCircles = []
+  this._middleCircles = []
+}
 export default MyOverlay
