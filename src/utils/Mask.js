@@ -6,6 +6,7 @@ function Mask (map, geometrys, geometrysInLayer, overlayMap, layerItem) {
   this._overlayMap = overlayMap
   this._myOverlays = []
   this._layerItem = layerItem
+  this._mousemoveFlag = false
   this.initialize()
 }
 Mask.prototype.initialize = function () {
@@ -54,23 +55,18 @@ Mask.prototype.setFocus = function (layerId) {
 Mask.prototype.editPoint = function (mycircle) {
   console.log('Mask editPoint')
   console.log(mycircle)
+  this._editPoint = mycircle
   this._map.disableDoubleClickZoom()
-  this._map.addEventListener('mousemove', this.moveAction.bind(this))
-  // that._map.addEventListener('mousemove', moveAction(e, index))
-  this._map.addEventListener('dblclick', this.dblclickAction.bind(this))
+  this._moveAction = function (e) {
+    mycircle._circle.setCenter(e.point)
+  }
+  if (!this._mousemoveFlag) {
+    this._mousemoveFlag = true
+    this._map.addEventListener('mousemove', this._moveAction)
+  }
 }
-Mask.prototype.moveAction = function (e) {
-  console.log('it movine')
-  console.log(e.point.lng + ' ' + e.point.lat)
-  console.log(e.point)
-  // that._circles[index].setCenter(e.point)
-  console.log(e.target)
-}
-Mask.prototype.dblclickAction = function (e) {
-  console.log('it dblclickAction')
-  // that._map.removeEventListener('mousedown', dragStart)
-  this._map.removeEventListener('mousemove', this.moveAction)
-  this._map.removeEventListener('dblclick', this.dblclickAction)
-  this._map.enableDoubleClickZoom()
+Mask.prototype.endEdit = function (mycircle) {
+  this._map.removeEventListener('mousemove', this._moveAction)
+  this._mousemoveFlag = false
 }
 export default Mask

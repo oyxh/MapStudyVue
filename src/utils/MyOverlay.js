@@ -175,6 +175,9 @@ MyOverlay.prototype.deletePoint = function (mycircle) {
 MyOverlay.prototype.editPoint = function (mycircle) {
   this._mask.editPoint(mycircle)
 }
+MyOverlay.prototype.endEdit = function (mycircle) {
+  this._mask.endEdit(mycircle)
+}
 MyOverlay.prototype.removeEditPoints = function () {
   for (let i = 0; i < this._pointCircles.length; i++) {
     this._map.removeOverlay(this._pointCircles[i]._circle)

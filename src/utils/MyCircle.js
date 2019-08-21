@@ -6,6 +6,7 @@ function MyCircle (map, centre, radius, type, myOverlay) {
   this._radius = radius
   this._type = type
   this._myOverlay = myOverlay
+  this._startFlag = false
   this.initialize()
 }
 MyCircle.prototype.initialize = function () {
@@ -21,18 +22,21 @@ MyCircle.prototype.initialize = function () {
     this._circle.addContextMenu(markerMenu)
   }
   this._circle.addEventListener('click', this.startAction.bind(this))
-  /*  var markerMenu = new window.BMap.ContextMenu()
-  markerMenu.addItem(new window.BMap.MenuItem('删除点', this.deletePoint.bind(this)))
-  anewcircle.addContextMenu(markerMenu) // 以上三行添加编辑点右键菜单
-  anewcircle.addEventListener('click', this.dragStart.bind(anewcircle)) */
-  // this._myOverlay.addEditPoints(this)
-  // this._map.addOverlay(this._circle)
 }
 MyCircle.prototype.deletePoint = function (e, ee) {
   this._myOverlay.deletePoint(this)
 }
 MyCircle.prototype.startAction = function (e) {
-  console.log(e.target)
-  this._myOverlay.editPoint(this)
+  this._circle.addEventListener('dblclick', this.endAction.bind(this))
+  if (!this._startFlag) {
+    this._startFlag = true
+    this._myOverlay.editPoint(this)
+  }
+}
+MyCircle.prototype.endAction = function (e) {
+  this._myOverlay.endEdit(this)
+  this._circle.removeEventListener('click', this.startAction.bind(this))
+  this._startFlag = false
+  this._circle.removeEventListener('dblclick', this.endAction.bind(this))
 }
 export default MyCircle
