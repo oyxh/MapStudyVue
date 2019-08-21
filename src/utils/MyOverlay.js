@@ -109,6 +109,7 @@ MyOverlay.prototype.removeMyOverlay = function (e, ee) {
   console.log('removeMyOverlay')
   this._map.removeOverlay(this._overlay)
   this._overlayLabel.remove()
+  this.removeEditPoints()
   /*  if (this._editOverlays !== undefined) {
     this._editOverlays.remove()
   } */
@@ -154,6 +155,25 @@ MyOverlay.prototype.addEditPoints = function (mycircle) {
 MyOverlay.prototype.deletePoint = function (mycircle) {
   console.log('delete Point')
   var index = this.getIndex(mycircle)
+  var arrayLength = this._pointArray.length
+  var pre = (index + arrayLength - 1) % arrayLength
+  var next = (index + 1) % arrayLength
+  this._map.removeOverlay(this._pointCircles[index]._circle)
+  this._map.removeOverlay(this._middleCircles[pre]._circle)
+  this._map.removeOverlay(this._middleCircles[index]._circle)
+  var middle = this.getMiddlePoint(this._pointArray[pre], this._pointArray[next])
+  var newMiddle = new MyCircle(this._map, middle, 15, 'middle', this)
+  this._pointArray.splice(index, 1)
+  this._pointCircles.splice(index, 1)
+  this._middleArray.splice(pre, 2, middle)
+  this._middleCircles.splice(pre, 2, newMiddle)
+  this._geometry.geometryData.splice(index, 1)
+  this._map.addOverlay(newMiddle._circle)
+  this.redrawPolygon()
+  console.log(index)
+}
+MyOverlay.prototype.editPoint = function (mycircle) {
+  this._mask.editPoint(mycircle)
 }
 MyOverlay.prototype.removeEditPoints = function () {
   for (let i = 0; i < this._pointCircles.length; i++) {
@@ -162,5 +182,24 @@ MyOverlay.prototype.removeEditPoints = function () {
   }
   this._pointCircles = []
   this._middleCircles = []
+}
+MyOverlay.prototype.redrawPolygon = function () {
+  this._overlay.setPath(this._pointArray)
+}
+MyOverlay.prototype.hide = function () {
+  this._overlay.hide()
+  this._overlayLabel.hide()
+  for (let i = 0; i < this._pointCircles.length; i++) {
+    this._pointCircles[i]._circle.hide()
+    this._middleCircles[i]._circle.hide()
+  }
+}
+MyOverlay.prototype.show = function () {
+  this._overlay.show()
+  this._overlayLabel.show()
+  for (let i = 0; i < this._pointCircles.length; i++) {
+    this._pointCircles[i]._circle.show()
+    this._middleCircles[i]._circle.show()
+  }
 }
 export default MyOverlay

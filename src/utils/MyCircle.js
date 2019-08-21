@@ -20,7 +20,7 @@ MyCircle.prototype.initialize = function () {
   if (this._type == 'point') {
     this._circle.addContextMenu(markerMenu)
   }
-
+  this._circle.addEventListener('click', this.startAction.bind(this))
   /*  var markerMenu = new window.BMap.ContextMenu()
   markerMenu.addItem(new window.BMap.MenuItem('删除点', this.deletePoint.bind(this)))
   anewcircle.addContextMenu(markerMenu) // 以上三行添加编辑点右键菜单
@@ -30,5 +30,9 @@ MyCircle.prototype.initialize = function () {
 }
 MyCircle.prototype.deletePoint = function (e, ee) {
   this._myOverlay.deletePoint(this)
+}
+MyCircle.prototype.startAction = function (e) {
+  console.log(e.target)
+  this._myOverlay.editPoint(this)
 }
 export default MyCircle

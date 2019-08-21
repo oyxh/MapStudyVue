@@ -125,22 +125,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         // this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
       console.log(this.layersget[0].layerId)
-      this.setFocus(this.geometrysInLayer[this.layersget[0].layerId])
       console.log(this.geometrysInLayer)
       this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap, this)
-    },
-    setFocus (layerData) {
-      var pointArray = []
-      if (layerData === undefined) {
-        pointArray.push(new window.BMap.Point(116.404, 39.915))
-      } else {
-        layerData.forEach(function (value) {
-          for (var j = 0; j < value.geometryData.length; j++) {
-            pointArray.push(new window.BMap.Point(value.geometryData[j].lng, value.geometryData[j].lat))
-          }
-        })
-      }
-      this.map.setViewport(pointArray)
+      this.mask.setFocus(this.layersget[0].layerId)
     },
     initOneGeometry (geometrysInLayer, geometry) {
       /*      var map = this.map
@@ -265,7 +252,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
     selectLayer (e, layerId, index) { // 选择图层
       if (this.activeLayer !== index) {
         this.activeLayer = index
-        this.setFocus(this.geometrysInLayer[layerId])
+        this.mask.setFocus(layerId)
       }
     },
     importFromFile (e, layerId, index) { // 导入数据
