@@ -13,6 +13,7 @@ Mask.prototype.initialize = function () {
   for (let i = 0; i < this._geometrys.length; i++) {
     this.generateOverlay(this._geometrys[i])
   }
+  this._map.addEventListener('zoomend', this.zoomAction.bind(this))
   console.log(this._overlayMap)
   // this.setFocus(this.layersget[0].layerId)
 }
@@ -52,21 +53,23 @@ Mask.prototype.setFocus = function (layerId) {
   }
   this._map.setViewport(pointArray)
 }
-Mask.prototype.editPoint = function (mycircle) {
-  console.log('Mask editPoint')
-  console.log(mycircle)
-  this._editPoint = mycircle
-  this._map.disableDoubleClickZoom()
-  this._moveAction = function (e) {
-    mycircle._circle.setCenter(e.point)
-  }
-  if (!this._mousemoveFlag) {
-    this._mousemoveFlag = true
-    this._map.addEventListener('mousemove', this._moveAction)
-  }
+Mask.prototype.getCircleRadius = function () {
+  var centre = this._map.getCenter()
+  let pixPoint = this._map.pointToPixel(centre)
+  pixPoint.y += 3
+  let point = this._map.pixelToPoint(pixPoint)
+  return this._map.getDistance(centre, point)
 }
-Mask.prototype.endEdit = function (mycircle) {
-  this._map.removeEventListener('mousemove', this._moveAction)
-  this._mousemoveFlag = false
+Mask.prototype.zoomAction = function (e) {
+  console.log('zoomAction')
+  var radius = this.getCircleRadius()
+  this._overlayMap.forEach(function (value) {
+    if (value._isEdit) {
+      for (let i = 0; i < value._pointArray.length; i++) {
+        value._pointCircles[i].setRadius(radius)
+        value._middleCircles[i].setRadius(radius)
+      }
+    }
+  })
 }
 export default Mask

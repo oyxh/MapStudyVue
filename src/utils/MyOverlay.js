@@ -12,6 +12,7 @@ function MyOverlay (map, geometry, overlay, layerItem, mask) {
 }
 MyOverlay.prototype.initialize = function () {
   this._pointArray = this._overlay.getPath()
+  this._mousemoveFlag = false
   this._middleArray = []
   for (let i = 0; i < this._pointArray.length; i++) {
     this._middleArray.push(this.getMiddlePoint(this._pointArray[i], this._pointArray[(i + 1) % this._pointArray.length]))
@@ -56,11 +57,7 @@ MyOverlay.prototype.showLabel = function () { // 显示多边形的名字
   this._overlayLabel.draw()
 }
 MyOverlay.prototype.editName = function (e, ee) {
-  console.log('editname')
-  console.log(this)
   var that = this
-  console.log(that._geometry)
-  console.log(that._geometry.geometryName)
   this._layerItem.$Modal.confirm({
     title: '请输入网格信息：',
     render: (h) => {
@@ -106,7 +103,6 @@ MyOverlay.prototype.editName = function (e, ee) {
   })
 }
 MyOverlay.prototype.removeMyOverlay = function (e, ee) {
-  console.log('removeMyOverlay')
   this._map.removeOverlay(this._overlay)
   this._overlayLabel.remove()
   this.removeEditPoints()
@@ -117,32 +113,30 @@ MyOverlay.prototype.removeMyOverlay = function (e, ee) {
   this._exist = false
 }
 MyOverlay.prototype.editMyOverlay = function (e, ee) {
-  console.log('editMyOverlay')
+  this._isEdit = true
+  var radius = this._mask.getCircleRadius()
   for (let i = 0; i < this._pointArray.length; i++) {
-    var mycircle = new MyCircle(this._map, this._pointArray[i], 15, 'point', this)
-    var mymiddle = new MyCircle(this._map, this._middleArray[i], 15, 'middle', this)
+    var mycircle = new MyCircle(this._map, this._pointArray[i], radius, 'point', this)
+    var mymiddle = new MyCircle(this._map, this._middleArray[i], radius, 'middle', this)
     this.addEditPoints(mycircle)
     this.addEditPoints(mymiddle)
   }
-  console.log(this._pointCircles)
-  console.log(this._middleCircles)
 }
 MyOverlay.prototype.editClose = function (e, ee) {
   var that = this
+  that._isEdit = false
   // that._editOverlays.remove()
   this.removeEditPoints()
   var geometrys = [that._geometry]
   that._layerItem.editGeometrys(geometrys)
     .then(function (response) {
       console.log(response)
-      that._isEdit = false
       that._layerItem.$Message.info('保存成功')
     })
     .catch(function (error) {
       console.log(error)
       that._layerItem.$Message.info('保存未成功')
     }) // axios
-  console.log('editClose')
 }
 MyOverlay.prototype.addEditPoints = function (mycircle) {
   this._map.addOverlay(mycircle._circle)
@@ -153,7 +147,6 @@ MyOverlay.prototype.addEditPoints = function (mycircle) {
   }
 }
 MyOverlay.prototype.deletePoint = function (mycircle) {
-  console.log('delete Point')
   var index = this.getIndex(mycircle)
   var arrayLength = this._pointArray.length
   var pre = (index + arrayLength - 1) % arrayLength
@@ -162,7 +155,8 @@ MyOverlay.prototype.deletePoint = function (mycircle) {
   this._map.removeOverlay(this._middleCircles[pre]._circle)
   this._map.removeOverlay(this._middleCircles[index]._circle)
   var middle = this.getMiddlePoint(this._pointArray[pre], this._pointArray[next])
-  var newMiddle = new MyCircle(this._map, middle, 15, 'middle', this)
+  var radius = this._mask.getCircleRadius()
+  var newMiddle = new MyCircle(this._map, middle, radius, 'middle', this)
   this._pointArray.splice(index, 1)
   this._pointCircles.splice(index, 1)
   this._middleArray.splice(pre, 2, middle)
@@ -170,13 +164,61 @@ MyOverlay.prototype.deletePoint = function (mycircle) {
   this._geometry.geometryData.splice(index, 1)
   this._map.addOverlay(newMiddle._circle)
   this.redrawPolygon()
-  console.log(index)
+}
+MyOverlay.prototype.replacePoint = function (index1, mycircle, point) { // 替换节点,点击后变化，分点击节点和点击中点
+  var index = this.getIndex(mycircle)
+  var pointLength = this._pointArray.length
+  var pre = (index - 1 + pointLength) % pointLength
+  var next = (index + 1) % pointLength
+  var radius = this._mask.getCircleRadius()
+  mycircle._circle.setCenter(point)
+  var geometryDatePoint = {lng: point.lng, lat: point.lat}
+  if (mycircle._type == 'point') {
+    this._pointArray.splice(index, 1, point)
+    this._geometry.geometryData.splice(index, 1, geometryDatePoint)
+    var add1 = this.getMiddlePoint(this._pointArray[pre], this._pointArray[index])
+    var add2 = this.getMiddlePoint(this._pointArray[index], this._pointArray[next])
+    this._middleCircles[pre]._circle.setCenter(add1)
+    this._middleCircles[index]._circle.setCenter(add2)
+    this._middleArray.splice(pre, 1, add1)
+    this._middleArray.splice(index, 1, add2)
+  } else {
+    var addmiddles = []
+    addmiddles.push(this.getMiddlePoint(this._pointArray[index], point))
+    addmiddles.push(this.getMiddlePoint(point, this._pointArray[next]))
+    this._middleArray.splice(index, 1)
+    this._middleCircles.splice(index, 1)
+    for (let i = 0; i < addmiddles.length; i++) {
+      var addMiddle = new MyCircle(this._map, addmiddles[i], radius, 'middle', this)
+      this._map.addOverlay(addMiddle._circle)
+      this._middleArray.splice(index + i, 0, addmiddles[i])
+      this._middleCircles.splice(index + i, 0, addMiddle)
+    }
+    this._pointArray.splice(index + 1, 0, point)
+    this._pointCircles.splice(index + 1, 0, mycircle)
+    this._geometry.geometryData.splice(index + 1, 0, geometryDatePoint)
+    mycircle._type = 'point'
+    mycircle._circle.setRadius(radius)
+    mycircle._circle.setFillColor('blue')
+    mycircle._circle.setStrokeColor('blue') //  编辑点颜色改变
+  }
 }
 MyOverlay.prototype.editPoint = function (mycircle) {
-  this._mask.editPoint(mycircle)
+  this._map.disableDoubleClickZoom()
+  var me = this
+  this._moveAction = function (e) {
+    var index = me.getIndex(mycircle)
+    me.replacePoint(index, mycircle, e.point)
+    me.redrawPolygon()
+  }
+  if (!this._mousemoveFlag) {
+    this._mousemoveFlag = true
+    this._map.addEventListener('mousemove', this._moveAction)
+  }
 }
 MyOverlay.prototype.endEdit = function (mycircle) {
-  this._mask.endEdit(mycircle)
+  this._map.removeEventListener('mousemove', this._moveAction)
+  this._mousemoveFlag = false
 }
 MyOverlay.prototype.removeEditPoints = function () {
   for (let i = 0; i < this._pointCircles.length; i++) {

@@ -39,4 +39,8 @@ MyCircle.prototype.endAction = function (e) {
   this._startFlag = false
   this._circle.removeEventListener('dblclick', this.endAction.bind(this))
 }
+MyCircle.prototype.setRadius = function (radius) {
+  this._radius = (this._type == 'point') ? radius : radius * 0.9
+  this._circle.setRadius(this._radius)
+}
 export default MyCircle
