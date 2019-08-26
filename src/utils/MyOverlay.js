@@ -35,6 +35,13 @@ MyOverlay.prototype.getMiddlePoint = function (point1, point2) {
   var midLat = (point1.lat + point2.lat) / 2
   return new window.BMap.Point(midLng, midLat)
 }
+MyOverlay.prototype.getInsect = function (mycircle) {
+  if (this._isEdit) {
+
+  } else {
+
+  }
+}
 MyOverlay.prototype.getIndex = function (mycircle) {
   var index = -1
   for (let i = 0; i < this._pointArray.length; i++) {
