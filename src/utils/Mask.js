@@ -60,6 +60,9 @@ Mask.prototype.getCircleRadius = function () {
   let point = this._map.pixelToPoint(pixPoint)
   return this._map.getDistance(centre, point)
 }
+Mask.prototype.getDistance = function (point1, point2) {
+  return Math.sqrt((point1.lng - point2.lng) * (point1.lng - point2.lng) + (point1.lat - point2.lat) * (point1.lat - point2.lat))
+}
 Mask.prototype.zoomAction = function (e) {
   console.log('zoomAction')
   var radius = this.getCircleRadius()

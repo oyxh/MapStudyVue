@@ -261,5 +261,42 @@ class MyPolygon {
     var vecDCY = pC[1] - pD[1]
     return (this.vecCross(vecADX, vecADY, vecACX, vecACY) / this.vecCross(vecABX, vecABY, vecDCX, vecDCY))
   }
+  /*
+ 方法名称：getDistancePointTOLine
+   功能描述：获取点到线段的距离
+   参数描述：
+   x：X坐标
+   y：Y坐标
+
+   返回值:点到线段的距离及交点
+*/
+  getDistancePointTOLine (x, y, x1, y1, x2, y2) { // x,y为点的位置,矢量法
+    var pointObject = {
+      x: 0,
+      y: 0,
+      dis: 0.0
+    }
+    var cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1)
+    if (cross <= 0) {
+      pointObject.x = x1
+      pointObject.y = y1
+      pointObject.dis = Math.pow((x - x1) * (x - x1) + (y - y1) * (y - y1), 0.5)
+      return pointObject
+    }
+    var d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
+    if (cross >= d2) {
+      pointObject.x = x2
+      pointObject.y = y2
+      pointObject.dis = Math.pow((x - x2) * (x - x2) + (y - y2) * (y - y2), 0.5)
+      return pointObject
+    }
+    var r = cross / d2
+    var px = x1 + (x2 - x1) * r
+    var py = y1 + (y2 - y1) * r
+    pointObject.x = px
+    pointObject.y = py
+    pointObject.dis = Math.pow((x - px) * (x - px) + (py - y) * (py - y), 0.5)
+    return pointObject
+  }
 }
 export default MyPolygon

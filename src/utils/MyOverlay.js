@@ -36,11 +36,18 @@ MyOverlay.prototype.getMiddlePoint = function (point1, point2) {
   return new window.BMap.Point(midLng, midLat)
 }
 MyOverlay.prototype.getInsect = function (mycircle) {
-  if (this._isEdit) {
-
-  } else {
-
+  for (let i = 0; i < this._pointCircles.length; i++) {
+    if (this._mask.getDistance(this._pointCircles[i]._circle.getCenter(), mycircle._circle.getCenter()) <
+        this._pointCircles[i]._circle.getRadius() + mycircle._circle.getRadius()) {
+      return this._pointCircles[i]._circle.getCenter()
+    }
+    if (this._mask.getDistance(this._middleCircles[i]._circle.getCenter(), mycircle._circle.getCenter()) <
+      this._middleCircles[i]._circle.getRadius() + mycircle._circle.getRadius()) {
+      return this._middleCircles[i]._circle.getCenter()
+    }
   }
+
+  return undefined
 }
 MyOverlay.prototype.getIndex = function (mycircle) {
   var index = -1
