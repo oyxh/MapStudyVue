@@ -271,11 +271,7 @@ class MyPolygon {
    返回值:点到线段的距离及交点
 */
   getDistancePointTOLine (x, y, x1, y1, x2, y2) { // x,y为点的位置,矢量法
-    var pointObject = {
-      x: 0,
-      y: 0,
-      dis: 0.0
-    }
+    var pointObject = {}
     var cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1)
     if (cross <= 0) {
       pointObject.x = x1
@@ -296,6 +292,30 @@ class MyPolygon {
     pointObject.x = px
     pointObject.y = py
     pointObject.dis = Math.pow((x - px) * (x - px) + (py - y) * (py - y), 0.5)
+    return pointObject
+  }
+  /*
+方法名称：getLineInsect
+ 功能描述：获取本多边形内与点point距离小于dis的边与交点
+ 参数描述：
+ point：地图上的点
+ dis：最小距离
+
+ 返回值:点到线段的距离及交点
+*/
+  getLineInsect (point, dis) {
+    var pointObject = null
+    var polygonLines = this.getPolygonLine()
+    var pC = null
+    var pD = null
+    for (let i = 0; i < polygonLines.length; i++) {
+      pC = [polygonLines[i].S.x, polygonLines[i].S.y]
+      pD = [polygonLines[i].E.x, polygonLines[i].E.y]
+      pointObject = this.getDistancePointTOLine(point.lng, point.lat, pC[0], pC[1], pD[0], pD[1])
+      if (pointObject.dis < dis) {
+        return pointObject
+      }
+    }
     return pointObject
   }
 }

@@ -22,6 +22,7 @@ MyOverlay.prototype.initialize = function () {
   this._polygon = new MyPolygon(this._pointArray, this._map)
   this._exist = true
   this._isEdit = false
+  this._isHide = false
   this.showLabel()
   var markerMenu = new window.BMap.ContextMenu()
   markerMenu.addItem(new window.BMap.MenuItem('删除区域', this.removeMyOverlay.bind(this)))
@@ -46,8 +47,9 @@ MyOverlay.prototype.getInsect = function (mycircle) {
       return this._middleCircles[i]._circle.getCenter()
     }
   }
-
-  return undefined
+  console.log(mycircle._circle.getCenter(), mycircle._circle.getRadius())
+  var pointObject = this._polygon.getLineInsect(mycircle._circle.getCenter(), mycircle._circle.getRadius())
+  return new window.BMap.Point(pointObject.x, pointObject.y)
 }
 MyOverlay.prototype.getIndex = function (mycircle) {
   var index = -1
@@ -221,6 +223,7 @@ MyOverlay.prototype.editPoint = function (mycircle) {
   this._map.disableDoubleClickZoom()
   var me = this
   this._moveAction = function (e) {
+    me._mask.nearPoint(mycircle, this)
     var index = me.getIndex(mycircle)
     me.replacePoint(index, mycircle, e.point)
     me.redrawPolygon()
@@ -248,6 +251,7 @@ MyOverlay.prototype.redrawPolygon = function () {
 MyOverlay.prototype.hide = function () {
   this._overlay.hide()
   this._overlayLabel.hide()
+  this._isHide = true
   for (let i = 0; i < this._pointCircles.length; i++) {
     this._pointCircles[i]._circle.hide()
     this._middleCircles[i]._circle.hide()
@@ -256,6 +260,7 @@ MyOverlay.prototype.hide = function () {
 MyOverlay.prototype.show = function () {
   this._overlay.show()
   this._overlayLabel.show()
+  this._isHide = false
   for (let i = 0; i < this._pointCircles.length; i++) {
     this._pointCircles[i]._circle.show()
     this._middleCircles[i]._circle.show()
