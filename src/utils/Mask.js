@@ -75,15 +75,15 @@ Mask.prototype.zoomAction = function (e) {
     }
   })
 }
-Mask.prototype.nearPoint = function (mycircle, myOverlay) {
-  this._overlayMap.forEach(function (value) {
+Mask.prototype.nearPoint = function (point, radius, myOverlay) {
+  for (let i = 0; i < this._myOverlays.length; i++) {
+    var value = this._myOverlays[i]
     if (value !== myOverlay && !value._isHide) {
-      console.log(value)
-      var insect = value.getInsect(mycircle)
+      var insect = value.getInsect(point, radius)
       if (insect instanceof window.BMap.Point) {
-        console.log(insect)
+        return insect
       }
     }
-  })
+  }
 }
 export default Mask

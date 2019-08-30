@@ -36,20 +36,21 @@ MyOverlay.prototype.getMiddlePoint = function (point1, point2) {
   var midLat = (point1.lat + point2.lat) / 2
   return new window.BMap.Point(midLng, midLat)
 }
-MyOverlay.prototype.getInsect = function (mycircle) {
+MyOverlay.prototype.getInsect = function (point, radius) {
   for (let i = 0; i < this._pointCircles.length; i++) {
-    if (this._mask.getDistance(this._pointCircles[i]._circle.getCenter(), mycircle._circle.getCenter()) <
-        this._pointCircles[i]._circle.getRadius() + mycircle._circle.getRadius()) {
+    if (this._mask.getDistance(point, radius) <
+        this._pointCircles[i]._circle.getRadius() + radius) {
       return this._pointCircles[i]._circle.getCenter()
     }
-    if (this._mask.getDistance(this._middleCircles[i]._circle.getCenter(), mycircle._circle.getCenter()) <
-      this._middleCircles[i]._circle.getRadius() + mycircle._circle.getRadius()) {
+    if (this._map.getDistance(this._middleCircles[i]._circle.getCenter(), point) <
+      this._middleCircles[i]._circle.getRadius() + radius) {
       return this._middleCircles[i]._circle.getCenter()
     }
   }
-  console.log(mycircle._circle.getCenter(), mycircle._circle.getRadius())
-  var pointObject = this._polygon.getLineInsect(mycircle._circle.getCenter(), mycircle._circle.getRadius())
-  return new window.BMap.Point(pointObject.x, pointObject.y)
+  var pointObject = this._polygon.getLineInsect(point, radius)
+  if (pointObject !== undefined) {
+    return new window.BMap.Point(pointObject.x, pointObject.y)
+  }
 }
 MyOverlay.prototype.getIndex = function (mycircle) {
   var index = -1
@@ -223,9 +224,13 @@ MyOverlay.prototype.editPoint = function (mycircle) {
   this._map.disableDoubleClickZoom()
   var me = this
   this._moveAction = function (e) {
-    me._mask.nearPoint(mycircle, this)
+    var insect = me._mask.nearPoint(e.point, mycircle._circle.getRadius(), me)
+    var replacePoint = e.point
+    if (insect instanceof window.BMap.Point) {
+      replacePoint = insect
+    }
     var index = me.getIndex(mycircle)
-    me.replacePoint(index, mycircle, e.point)
+    me.replacePoint(index, mycircle, replacePoint)
     me.redrawPolygon()
   }
   if (!this._mousemoveFlag) {

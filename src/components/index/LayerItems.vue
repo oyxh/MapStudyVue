@@ -60,6 +60,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       value2: false,
       layersget: [], // 所有图层
       geometrys: [], // 所有覆盖几何物体
+      newGeometrysInLayer: {}, // 新添加的覆盖物按layerId分组，比如newGeometrysInLayer[43] = []是层id为43
       geometrysInLayer: { },
       data2: [],
       drawTool: null,
@@ -91,7 +92,6 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
   },
   watch: {
     layerChange: function () { // 同步获取数据库的图层信息
-      console.log('layerChange is change')
       var that = this
       var postconfig = {
         method: 'get',
@@ -116,16 +116,21 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       return this.axios(postconfig)
     },
     initOverlays () {
+      for (let layer in this.layersget) {
+        this.geometrysInLayer[this.layersget[layer].layerId] = new Map()
+        this.newGeometrysInLayer[this.layersget[layer].layerId] = []
+      }
       for (var i = 0; i < this.geometrys.length; i++) {
         var layerId = this.geometrys[i].layerId
         if (this.geometrysInLayer[layerId] === undefined) {
           this.geometrysInLayer[layerId] = new Map()
         }
+        if (this.newGeometrysInLayer[layerId] === undefined) {
+          this.newGeometrysInLayer[layerId] = []
+        }
         this.geometrysInLayer[layerId].set(this.geometrys[i].geometryId, this.geometrys[i])
         // this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
-      console.log(this.layersget[0].layerId)
-      console.log(this.geometrysInLayer)
       this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap, this)
       this.mask.setFocus(this.layersget[0].layerId)
     },
@@ -238,6 +243,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         layerId: layerId,
         layerName: gridName
       })
+      this.newGeometrysInLayer[layerId] = []
+      this.activeLayer = 0
+      this.mask.setFocus(layerId)
     },
     layerIsChange () { // 数据库的数据重载过来
       this.layerChange = !this.layerChange
@@ -298,6 +306,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
     },
     deleteSuccess (index) { // 图层变化
       this.layersget.splice(index, 1)
+      this.mask.setFocus(this.layersget[0].layerId)
       // this.$emit('layerChangeFromSon')
     },
     drawerClose: function () { // 选择背景地图的drawer关闭
@@ -328,7 +337,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       var map = this.$parent.map
       var bdary = new window.BMap.Boundary()
       var layer = this.layersget[this.activeLayer]
-
+      var me = this
       bdary.get(backcounty, function (rs) { // 获取行政区域
         // map.clearOverlays() // 清除地图覆盖物
         var count = rs.boundaries.length // 行政区域的点有多少个，行政区域的多边形可能有多个
@@ -350,8 +359,10 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
             maxSeq = j
           }
           var formatPolygon = { }
-          formatPolygon.polygonName = backcounty + j
-          formatPolygon.polygonMana = backcounty + j
+          formatPolygon.geometryName = backcounty
+          formatPolygon.geometryClass = 'PLYGON'
+          formatPolygon.layerId = layer.layerId
+          formatPolygon.isBackground = 1
           var pointArrayJson = []
           for (var k = 0; k < pointArray[j].length; k++) {
             pointArrayJson.push({
@@ -359,14 +370,16 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
               'lat': pointArray[j][k].lat
             })
           }
-          formatPolygon.polygonData = pointArrayJson
-          formatGroundData.push(formatPolygon)
+          formatPolygon.geometryData = pointArrayJson
+          console.log(formatPolygon)
+          me.newGeometrysInLayer[layer.layerId].push(formatPolygon)
+          // formatGroundData.push(formatPolygon)
           var ply1 = new window.BMap.Polygon(pointArray[j], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
           ply1.setFillOpacity(0.1)
           map.addOverlay(ply1)
         }
+        console.log(me.newGeometrysInLayer)
         map.setViewport(pointArray[maxSeq])
-        layer.layerGroundData = formatGroundData
       })
     },
     drawLayer () { // 开始绘制区域图层

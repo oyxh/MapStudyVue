@@ -276,14 +276,14 @@ class MyPolygon {
     if (cross <= 0) {
       pointObject.x = x1
       pointObject.y = y1
-      pointObject.dis = Math.pow((x - x1) * (x - x1) + (y - y1) * (y - y1), 0.5)
+      pointObject.dis = this._map.getDistance(new window.BMap.Point(x, y), new window.BMap.Point(x1, y1)) // Math.pow((x - x1) * (x - x1) + (y - y1) * (y - y1), 0.5)
       return pointObject
     }
     var d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
     if (cross >= d2) {
       pointObject.x = x2
       pointObject.y = y2
-      pointObject.dis = Math.pow((x - x2) * (x - x2) + (y - y2) * (y - y2), 0.5)
+      pointObject.dis = this._map.getDistance(new window.BMap.Point(x, y), new window.BMap.Point(x2, y2)) //   Math.pow((x - x2) * (x - x2) + (y - y2) * (y - y2), 0.5)
       return pointObject
     }
     var r = cross / d2
@@ -291,7 +291,7 @@ class MyPolygon {
     var py = y1 + (y2 - y1) * r
     pointObject.x = px
     pointObject.y = py
-    pointObject.dis = Math.pow((x - px) * (x - px) + (py - y) * (py - y), 0.5)
+    pointObject.dis = this._map.getDistance(new window.BMap.Point(x, y), new window.BMap.Point(px, py)) //  Math.pow((x - px) * (x - px) + (py - y) * (py - y), 0.5)
     return pointObject
   }
   /*
@@ -316,7 +316,7 @@ class MyPolygon {
         return pointObject
       }
     }
-    return pointObject
+    return undefined
   }
 }
 export default MyPolygon

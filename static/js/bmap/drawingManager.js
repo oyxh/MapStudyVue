@@ -1077,13 +1077,8 @@ var BMAP_DRAWING_POLYGON = 'polygon';// 鼠标画多边形模式
           }
         }
       }
-      var offsetX = minPointLine.x - e.point.lat
-      var offsetY = minPointLine.y - e.point.lng
-      var centerP = map.getCenter()
-      centerP.lat += offsetX
-      centerP.lng += offsetY
-      map.panTo(centerP, false)
-      overlay.setPositionAt(drawPoint.length - 1, e.point)
+      overlay.setPositionAt(drawPoint.length - 1, new window.BMap.Point(minPointLine.y, minPointLine.x))
+      // overlay.setPositionAt(drawPoint.length - 1, e.point)
     }
 
     /**
