@@ -20,7 +20,7 @@ MyOverlay.prototype.initialize = function () {
   this._pointCircles = []
   this._middleCircles = []
   this._polygon = new MyPolygon(this._pointArray, this._map)
-  this._exist = true
+  this._exist = 1 // 0删除 1存在 2 增加
   this._isEdit = false
   this._isHide = false
   this.showLabel()
@@ -127,7 +127,7 @@ MyOverlay.prototype.removeMyOverlay = function (e, ee) {
     this._editOverlays.remove()
   } */
   // this._geometrysInLayer.delete(this._geometry.geometryId)
-  this._exist = false
+  this._exist = 0
 }
 MyOverlay.prototype.editMyOverlay = function (e, ee) {
   this._isEdit = true

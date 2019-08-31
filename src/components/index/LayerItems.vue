@@ -35,7 +35,7 @@
 </template>
 
 <script>
-/* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars,eqeqeq */
 import PrompWindow from './promp'
 import ImportWindow from './ImportWindow'
 import Mask from '../../utils/Mask'
@@ -60,7 +60,6 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       value2: false,
       layersget: [], // 所有图层
       geometrys: [], // 所有覆盖几何物体
-      newGeometrysInLayer: {}, // 新添加的覆盖物按layerId分组，比如newGeometrysInLayer[43] = []是层id为43
       geometrysInLayer: { },
       data2: [],
       drawTool: null,
@@ -117,39 +116,34 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
     },
     initOverlays () {
       for (let layer in this.layersget) {
-        this.geometrysInLayer[this.layersget[layer].layerId] = new Map()
-        this.newGeometrysInLayer[this.layersget[layer].layerId] = []
+        this.geometrysInLayer[this.layersget[layer].layerId] = []
       }
       for (var i = 0; i < this.geometrys.length; i++) {
         var layerId = this.geometrys[i].layerId
         if (this.geometrysInLayer[layerId] === undefined) {
-          this.geometrysInLayer[layerId] = new Map()
+          this.geometrysInLayer[layerId] = []
         }
-        if (this.newGeometrysInLayer[layerId] === undefined) {
-          this.newGeometrysInLayer[layerId] = []
-        }
-        this.geometrysInLayer[layerId].set(this.geometrys[i].geometryId, this.geometrys[i])
+        this.geometrysInLayer[layerId].push(this.geometrys[i])
         // this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
       this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap, this)
       this.mask.setFocus(this.layersget[0].layerId)
     },
-    initOneGeometry (geometrysInLayer, geometry) {
-      /*      var map = this.map
-      var polygonObject = new MyOverlay(map, geometry, geometrysInLayer, this)
-      this.overlayMap.set(geometry, polygonObject) */
-    },
     dataSynch: function () { // 同步第layerseq层的数据
       this.overlayMap.forEach(function (value, key, map) {
-        if (!value._exist) {
+        if (value._exist == 0) {
           map.delete(key)
         }
       })
     },
     synchDelete (geometrysId, geometrys) { // 同步页面上删除的数据
       for (let geometryId of geometrysId) {
-        this.overlayMap.delete(geometrys.get(geometryId))
-        geometrys.delete(geometryId)
+        for (let index in geometrys) {
+          if (geometryId == geometrys[index].geometryId) {
+            this.overlayMap.delete(geometrys[index])
+            geometrys.splice(index, 1)
+          }
+        }
       }
     },
     deleteGeometrys (geometrysId) { // 删除多个gemetry，批量删除
@@ -188,13 +182,20 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       var deleteGeometrys = []
       var deleteGeometrysId = []
       var editGeometrys = []
-      geometrys.forEach(function (value, key, map) {
-        if (!that.overlayMap.get(value)._exist) { // this.overlayMap为map数据集合,key为geometry,value为MyOverlay
+      /*      geometrys.forEach(function (value, key, map) {
+        if (that.overlayMap.get(value)._exist == 0) { // this.overlayMap为map数据集合,key为geometry,value为MyOverlay
           deleteGeometrysId.push(key)
         } else if (that.overlayMap.get(value)._isEdit) {
           editGeometrys.push(value)
         }
-      })
+      }) */
+      for (let index in geometrys) {
+        if (that.overlayMap.get(geometrys[index])._exist == 0) { // this.overlayMap为map数据集合,key为geometry,value为MyOverlay
+          deleteGeometrysId.push(geometrys[index].geometryId)
+        } else if (that.overlayMap.get(geometrys[index])._isEdit) {
+          editGeometrys.push(geometrys[index])
+        }
+      }
       this.axios.all([that.deleteGeometrys(deleteGeometrysId), that.editGeometrys(editGeometrys)])
         .then(this.axios.spread(function (acct, perms) {
           console.log(acct)
@@ -243,7 +244,6 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         layerId: layerId,
         layerName: gridName
       })
-      this.newGeometrysInLayer[layerId] = []
       this.activeLayer = 0
       this.mask.setFocus(layerId)
     },
@@ -350,14 +350,8 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           var ply = new window.BMap.Polygon(rs.boundaries[i], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8}) // 建立多边形覆盖物
           pointArray.push(ply.getPath())
         }
-        var maxPointNum = 0
-        var maxSeq = 0
         var formatGroundData = [] // 传送至后台的背景数据
         for (var j = 0; j < pointArray.length; j++) { // 简化行政区域的点
-          if (pointArray[j].length > maxPointNum) {
-            maxPointNum = pointArray[j].length
-            maxSeq = j
-          }
           var formatPolygon = { }
           formatPolygon.geometryName = backcounty
           formatPolygon.geometryClass = 'PLYGON'
@@ -372,14 +366,12 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           }
           formatPolygon.geometryData = pointArrayJson
           console.log(formatPolygon)
-          me.newGeometrysInLayer[layer.layerId].push(formatPolygon)
+          me.mask.addOverlay(formatPolygon)
           // formatGroundData.push(formatPolygon)
-          var ply1 = new window.BMap.Polygon(pointArray[j], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
+          /*          var ply1 = new window.BMap.Polygon(pointArray[j], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8})
           ply1.setFillOpacity(0.1)
-          map.addOverlay(ply1)
+          map.addOverlay(ply1) */
         }
-        console.log(me.newGeometrysInLayer)
-        map.setViewport(pointArray[maxSeq])
       })
     },
     drawLayer () { // 开始绘制区域图层

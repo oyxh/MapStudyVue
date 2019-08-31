@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 import MyOverlay from './MyOverlay'
 function Mask (map, geometrys, geometrysInLayer, overlayMap, layerItem) {
   this._map = map
@@ -17,7 +18,7 @@ Mask.prototype.initialize = function () {
   console.log(this._overlayMap)
   // this.setFocus(this.layersget[0].layerId)
 }
-Mask.prototype.generateOverlay = function (geometry) {
+Mask.prototype.generateOverlay = function (geometry, type) {
   var pointArray = []
   for (var i = 0; i < geometry.geometryData.length; i++) {
     pointArray.push(new window.BMap.Point(geometry.geometryData[i].lng, geometry.geometryData[i].lat))
@@ -29,28 +30,51 @@ Mask.prototype.generateOverlay = function (geometry) {
   myOverlay.hide()
   this._overlayMap.set(geometry, myOverlay)
   this._myOverlays.push(myOverlay)
+  if (type == 'add') {
+    this._geometrysInLayer[geometry.layerId].push(geometry)
+    myOverlay._exist = 2
+  }
+}
+Mask.prototype.addOverlay = function (geometry) {
+  console.log(geometry)
+  this.generateOverlay(geometry, 'add')
+  console.log(geometry.layerId)
+  this.setFocus(geometry.layerId)
+  console.log(this._overlayMap)
 }
 Mask.prototype.setFocus = function (layerId) {
   var me = this
+  console.log('_geometrysInLayer', this._geometrysInLayer)
   var lastLayerData = this._geometrysInLayer[this._activeLayerId]
   if (lastLayerData !== undefined) {
-    lastLayerData.forEach(function (value) {
+    /*    lastLayerData.forEach(function (value) {
       me._overlayMap.get(value).hide()
-    })
+    }) */
+    for (let index in lastLayerData) {
+      me._overlayMap.get(lastLayerData[index]).hide()
+    }
   }
   this._activeLayerId = layerId
   var layerData = this._geometrysInLayer[layerId]
+  console.log(layerData)
   var pointArray = []
   if (layerData === undefined) {
     pointArray.push(new window.BMap.Point(116.404, 39.915))
   } else {
-    layerData.forEach(function (value) {
+    /*    layerData.forEach(function (value) {
       me._overlayMap.get(value).show()
       for (let j = 0; j < value.geometryData.length; j++) {
         pointArray.push(new window.BMap.Point(value.geometryData[j].lng, value.geometryData[j].lat))
       }
-    })
+    }) */
+    for (let index in layerData) {
+      me._overlayMap.get(layerData[index]).show()
+      for (let j = 0; j < layerData[index].geometryData.length; j++) {
+        pointArray.push(new window.BMap.Point(layerData[index].geometryData[j].lng, layerData[index].geometryData[j].lat))
+      }
+    }
   }
+  console.log(pointArray)
   this._map.setViewport(pointArray)
 }
 Mask.prototype.getCircleRadius = function () {
