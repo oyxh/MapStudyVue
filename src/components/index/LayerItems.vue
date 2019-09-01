@@ -318,6 +318,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         var backcounty = this.$refs.tree.getSelectedNodes()[0].title
         if (backcounty !== this.layersget[this.activeLayer].layerGround) {
           var that = this
+          this.layersget[this.activeLayer].layerGround = backcounty
           this.$Modal.confirm({
             title: '背景变化',
             content: '即将更改背景区域，请确定',
@@ -329,7 +330,6 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       }
     },
     setBackGroundLayer (backcounty) { // 设置背景图层
-      this.layersget[this.activeLayer].layerGround = backcounty
       this.getBoundary(backcounty)
       // this.saveLayer(this.layersget[this.activeLayer])
     },
@@ -350,7 +350,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
           var ply = new window.BMap.Polygon(rs.boundaries[i], {strokeWeight: 2, strokeColor: '#ff0000', strokeOpacity: 0.8}) // 建立多边形覆盖物
           pointArray.push(ply.getPath())
         }
-        var formatGroundData = [] // 传送至后台的背景数据
+        if (layer.layerId !== undefined) {
+          me.mask.deleteOverlays(layer.layerId)
+        }
         for (var j = 0; j < pointArray.length; j++) { // 简化行政区域的点
           var formatPolygon = { }
           formatPolygon.geometryName = backcounty

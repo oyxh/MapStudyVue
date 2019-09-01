@@ -31,6 +31,10 @@ Mask.prototype.generateOverlay = function (geometry, type) {
   this._overlayMap.set(geometry, myOverlay)
   this._myOverlays.push(myOverlay)
   if (type == 'add') {
+    console.log(geometry.layerId)
+    if (this._geometrysInLayer[geometry.layerId] == undefined) {
+      this._geometrysInLayer[geometry.layerId] = []
+    }
     this._geometrysInLayer[geometry.layerId].push(geometry)
     myOverlay._exist = 2
   }
@@ -42,9 +46,17 @@ Mask.prototype.addOverlay = function (geometry) {
   this.setFocus(geometry.layerId)
   console.log(this._overlayMap)
 }
+Mask.prototype.deleteOverlays = function (layerId) { // 删除 layserId上的所有覆盖5️⃣
+  if (this._geometrysInLayer[layerId] == undefined) { return 0 }
+  var geometrys = this._geometrysInLayer[layerId]
+  for (let index in geometrys) {
+    this._overlayMap.get(geometrys[index]).removeMyOverlay()
+    this._overlayMap.delete(geometrys[index])
+  }
+  this._geometrysInLayer[layerId] = []
+}
 Mask.prototype.setFocus = function (layerId) {
   var me = this
-  console.log('_geometrysInLayer', this._geometrysInLayer)
   var lastLayerData = this._geometrysInLayer[this._activeLayerId]
   if (lastLayerData !== undefined) {
     /*    lastLayerData.forEach(function (value) {

@@ -28,6 +28,8 @@ MyControl.prototype.initialize = function (map) {
   // 添加DOM元素到地图中
   map.getContainer().appendChild(container)
   // 将DOM元素返回
+  console.log(map.getContainer())
+  console.log(container)
   return container
 }
 // 生成工具栏的html元素
