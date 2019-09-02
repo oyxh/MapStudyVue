@@ -91,6 +91,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
   },
   watch: {
     layerChange: function () { // 同步获取数据库的图层信息
+      console.log('layerChange')
       var that = this
       var postconfig = {
         method: 'get',
@@ -115,6 +116,7 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
       return this.axios(postconfig)
     },
     initOverlays () {
+      console.log('initOverlays')
       for (let layer in this.layersget) {
         this.geometrysInLayer[this.layersget[layer].layerId] = []
       }
@@ -127,7 +129,9 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         // this.initOneGeometry(this.geometrysInLayer[layerId], this.geometrys[i])
       }
       this.mask = new Mask(this.map, this.geometrys, this.geometrysInLayer, this.overlayMap, this)
-      this.mask.setFocus(this.layersget[0].layerId)
+      if (this.layersget.length > 1) {
+        this.mask.setFocus(this.layersget[0].layerId)
+      }
     },
     dataSynch: function () { // 同步第layerseq层的数据
       this.overlayMap.forEach(function (value, key, map) {
@@ -245,7 +249,10 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         layerName: gridName
       })
       this.activeLayer = 0
-      this.mask.setFocus(layerId)
+      console.log(this.mask)
+      if (this.mask !== undefined) {
+        this.mask.setFocus(layerId)
+      }
     },
     layerIsChange () { // 数据库的数据重载过来
       this.layerChange = !this.layerChange
@@ -266,8 +273,49 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
     importFromFile (e, layerId, index) { // 导入数据
       this.importData = !this.importData
     },
+    deleteLayerGeometrys (layerId) { // 删除一个图层的gemetry，批量删除
+      var that = this
+      var postconfig = {
+        method: 'post',
+        url: 'api/removelayer/geometrys',
+        dataType: 'json',
+        data: {id: layerId},
+        transformRequest: [function (data) { // 登录时处理数据格式,处理后后台接收的参数为data按顺序传递
+          let ret = ''
+          for (let it in data) {
+            ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+          }
+          return ret
+        }]
+      }
+      return this.axios(postconfig)
+    },
+    deleteOneLayer (layerId) { // 从数据库删除一个图层，
+      var that = this
+      var postconfig = {
+        method: 'post',
+        url: 'api/removelayer',
+        dataType: 'json',
+        data: {id: layerId},
+        transformRequest: [function (data) { // 登录时处理数据格式,处理后后台接收的参数为data按顺序传递
+          let ret = ''
+          for (let it in data) {
+            ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+          }
+          return ret
+        }]
+      }
+      // console.log(this.axios(postconfig))
+      return this.axios(postconfig)
+    },
     deleteLayer (e, layerId, index) { // 删除图层
       this.confirm(layerId, index) // 确认是否删除
+    },
+    clearGeometrys (layerId) { // 删除图层上的geometrys
+
+    },
+    clearlayers (index) { // 删除页面上图层
+      this.layersget.splice(index, 1)
     },
     confirm (layerId, index) { // 确认是否删除
       var that = this
@@ -275,29 +323,33 @@ geometrysInLayer:所有几何体重新存储为，geometrysInLayer[layerId]为�
         title: '请确认是否删除',
         content: '<p>删除后不可恢复，请注意！</p>',
         onOk: () => {
-          this.$Message.info('删除图层')
-          var postconfig = {
-            method: 'post',
-            url: 'api/removelayer',
-            data: {
-              id: layerId
-            },
-            transformRequest: [function (data) { // 登录时处理数据格式,处理后后台接收的参数为data按顺序传递
-              let ret = ''
-              for (let it in data) {
-                ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
-              }
-              return ret
-            }]
-          }
-          this.axios(postconfig)
-            .then(
-              function (response) {
-                that.deleteSuccess(index)
+          that.deleteLayerGeometrys(layerId).then(res => {
+            console.log(res)
+            if (res.data.msg == 'success') {
+              that.$Message.info('删除图层内容成功')
+              that.deleteOneLayer(layerId).then(res => {
+                that.$Message.info('删除图层成功')
+                that.clearlayers(index)
+                // that.layerIsChange()
+                console.log(res)
+              }).catch(error => {
+                that.$Message.info('删除图层未成功')
+                console.log(error)
               })
-            .catch(function (error) {
+            }
+          })
+            .catch(error => {
+              that.$Message.info('删除图层内容未成功')
               console.log(error)
-            }) // axios
+            })
+          /*          this.$Message.info('删除图层')
+          that.deleteLayerGeometrys(layerId).then(
+            console.log('删除未成功')
+            that.deleteOneLayer(layerId)
+        ).catch(error => {
+            that.$Message.info('删除未成功')
+            console.log(error)
+          }) */
         },
         onCancel: () => {
           // this.$Message.info('Clicked cancel')
