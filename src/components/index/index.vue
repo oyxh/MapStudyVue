@@ -62,7 +62,7 @@
                   <Icon type="ios-paper" />
                   内容管理
                 </template>
-                <MenuItem name="1-1">文章管理</MenuItem>
+                <MenuItem name="1-1" @click.native = "handleTest">文章管理</MenuItem>
                 <MenuItem name="1-2">评论管理</MenuItem>
                 <MenuItem name="1-3">举报管理</MenuItem>
               </Submenu>
@@ -79,8 +79,10 @@
         </Sider>
         <Layout :style="{padding: '0 5px 5px'}">
           <Content :style="{padding: '5px', minHeight: '480px', background: '#fff'}">
+            <router-view />
+
             <!-- 渲染组件 -->
-            <MapWindow v-bind:is-active="isActive"></MapWindow>
+            <!--<MapWindow v-bind:is-active="isActive"></MapWindow>-->
           </Content>
         </Layout>
       </Layout>
@@ -99,7 +101,13 @@ export default {
   },
   methods: {
     mapWindowAutoLeft () {
+      this.$router.push({path: '/one'})
       this.isActive = !this.isActive
+    },
+    handleTest () {
+      console.log('test')
+      console.log(this.$router)
+      this.$router.push({path: '/two'})
     }
   }
 }

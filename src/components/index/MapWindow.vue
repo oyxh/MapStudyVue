@@ -151,6 +151,7 @@ export default {
             scale: 0.8, // 缩放
             drawingModes: [
               BMAP_DRAWING_MARKER,
+              BMAP_DRAWING_CIRCLE,
               BMAP_DRAWING_POLYGON
             ]
           },
